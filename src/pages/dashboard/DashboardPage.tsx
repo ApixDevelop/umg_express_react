@@ -1,4 +1,4 @@
-﻿import React from "react";
+import React from "react";
 import { Link } from "react-router";
 import { useQuery } from "@tanstack/react-query";
 import { guiasApi } from "@/api/guias";

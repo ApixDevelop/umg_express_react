@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useSearchParams } from "react-router";
 import { reportesApi } from "@/api/reportes";
 import { Button } from "@/components/ui/Button";

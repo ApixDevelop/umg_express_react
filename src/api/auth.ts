@@ -1,4 +1,4 @@
-﻿import { api } from "./client";
+import { api } from "./client";
 import type { LoginResponse, Usuario, UserRole, ApiHealthResponse } from "@/types";
 
 export const authApi = {

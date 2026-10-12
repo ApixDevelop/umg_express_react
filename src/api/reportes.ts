@@ -1,4 +1,4 @@
-﻿import { api } from "./client";
+import { api } from "./client";
 import type { RastreoInfo, ManifiestoInfo, LiquidacionInfo } from "@/types";
 
 export const reportesApi = {

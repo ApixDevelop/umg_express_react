@@ -1,4 +1,4 @@
-﻿import React from "react";
+import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router";
 import { ProtectedRoute } from "@/components/layout/ProtectedRoute";
 import { RoleGuard } from "@/components/layout/RoleGuard";

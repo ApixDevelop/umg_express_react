@@ -1,4 +1,4 @@
-﻿import axios, { AxiosError } from "axios";
+import axios, { AxiosError } from "axios";
 import { useAuthStore } from "@/store/authStore";
 
 export const api = axios.create({

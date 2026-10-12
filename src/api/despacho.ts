@@ -1,4 +1,4 @@
-﻿import { api } from "./client";
+import { api } from "./client";
 import type { DespachoItem, ResultadoDespacho } from "@/types";
 
 export interface ProcesarDespachoPayload {

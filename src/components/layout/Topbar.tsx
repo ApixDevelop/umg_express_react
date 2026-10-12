@@ -1,4 +1,4 @@
-﻿import React, { useState } from "react";
+import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router";
 import { useAuthStore } from "@/store/authStore";
 import { Menu, Search } from "lucide-react";

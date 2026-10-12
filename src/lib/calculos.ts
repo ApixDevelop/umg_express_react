@@ -1,4 +1,4 @@
-﻿export function calcularPesoVolumetrico(largoCm: number, anchoCm: number, altoCm: number): number {
+export function calcularPesoVolumetrico(largoCm: number, anchoCm: number, altoCm: number): number {
   if (largoCm <= 0 || anchoCm <= 0 || altoCm <= 0) return 0;
   return Number(((largoCm * anchoCm * altoCm) / 5000).toFixed(2));
 }

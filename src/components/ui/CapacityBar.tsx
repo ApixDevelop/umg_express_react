@@ -1,4 +1,4 @@
-﻿import React from "react";
+import React from "react";
 import { cn, formatNumber } from "@/lib/utils";
 
 export interface CapacityBarProps {
