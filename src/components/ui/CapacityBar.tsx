@@ -15,41 +15,38 @@ export function CapacityBar({ label, current, max, unit, className }: CapacityBa
   const isNear = percentage >= 85 && !isOver;
 
   let colorBar = "bg-emerald-500";
-  let colorText = "text-emerald-400";
-  let statusText = "Capacidad óptima";
+  let colorText = "text-slate-300";
 
   if (isOver) {
     colorBar = "bg-rose-500";
     colorText = "text-rose-400";
-    statusText = "¡EXCEDIDO!";
   } else if (isNear) {
     colorBar = "bg-amber-500";
     colorText = "text-amber-400";
-    statusText = "Casi lleno";
   }
 
   return (
     <div className={cn("w-full space-y-1.5", className)}>
       <div className="flex items-center justify-between text-xs">
-        <span className="font-semibold text-slate-300">{label}</span>
-        <div className="flex items-center gap-2 font-mono">
-          <span className={cn("font-bold", colorText)}>
+        <span className="font-medium text-slate-300">{label}</span>
+        <div className="flex items-center gap-1.5 tabular-nums text-xs">
+          <span className={colorText}>
             {formatNumber(current)} / {formatNumber(max)} {unit}
           </span>
-          <span className={cn("text-[10px] px-1.5 py-0.2 rounded font-semibold", colorText, isOver ? "bg-rose-500/15" : "bg-slate-800")}>
-            {formatNumber(percentage, 1)}%
+          <span className="text-[11px] text-slate-500">
+            ({formatNumber(percentage, 0)}%)
           </span>
         </div>
       </div>
-      <div className="h-2.5 w-full bg-slate-800 rounded-full overflow-hidden border border-slate-700/60 p-0.5">
+      <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
         <div
-          className={cn("h-full rounded-full transition-all duration-300", colorBar)}
+          className={cn("h-full transition-all duration-200", colorBar)}
           style={{ width: `${Math.min(percentage, 100)}%` }}
         />
       </div>
       {isOver && (
-        <p className="text-[11px] text-rose-400 font-medium flex items-center gap-1 animate-pulse">
-          ⚠️ Excede la capacidad física máxima por {formatNumber(current - max)} {unit}
+        <p className="text-[11px] text-rose-400">
+          Excede la capacidad máxima por {formatNumber(current - max)} {unit}
         </p>
       )}
     </div>
