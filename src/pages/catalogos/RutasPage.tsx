@@ -1,13 +1,12 @@
 ﻿import React, { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { rutasApi, sucursalesApi } from "@/api/catalogos";
-import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Modal } from "@/components/ui/Modal";
 import { formatCurrency } from "@/lib/utils";
-import { PlusCircle, Edit2, Trash2, MapPin, Search, ArrowRight } from "lucide-react";
+import { Plus, Edit2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import type { Ruta } from "@/types";
 
@@ -69,7 +68,7 @@ export function RutasPage() {
     mutationFn: (id: number) => rutasApi.eliminar(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["rutas"] });
-      toast.success("Ruta dada de baja lógica");
+      toast.success("Ruta dada de baja");
     },
     onError: (err: any) => {
       toast.error(err.message || "Error al eliminar ruta");
@@ -78,8 +77,8 @@ export function RutasPage() {
 
   const openCreate = () => {
     setEditingItem(null);
-    setIdOrigen(0);
-    setIdDestino(0);
+    setIdOrigen(sucursales[0]?.id || 0);
+    setIdDestino(sucursales[1]?.id || 0);
     setDistanciaKm(50);
     setTarifaBase(45);
     setIsModalOpen(true);
@@ -100,141 +99,155 @@ export function RutasPage() {
   };
 
   const handleDelete = (id: number) => {
-    if (window.confirm(`¿Está seguro de dar de baja lógica a la ruta #${id}?`)) {
+    if (window.confirm(`¿Está seguro de dar de baja la ruta #${id}?`)) {
       deleteMutation.mutate(id);
     }
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-200">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="space-y-5">
+      {/* Cabecera */}
+      <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-extrabold text-white font-heading">
-            Catálogo de Rutas de Distribución
-          </h2>
-          <p className="text-xs sm:text-sm text-slate-400 mt-1">
-            Conexión entre agencias, kilometraje y tarifas base de flete.
+          <h1 className="text-xl font-semibold text-slate-100">Rutas de Distribución</h1>
+          <p className="text-xs text-slate-400 mt-0.5">
+            Trayectos interdepartamentales, kilometraje y tarifa base de flete
           </p>
         </div>
-        <Button variant="primary" onClick={openCreate} leftIcon={<PlusCircle className="w-4 h-4" />}>
-          Nueva Ruta
+        <Button
+          variant="primary"
+          size="sm"
+          onClick={() => {
+            if (sucursales.length < 2) {
+              toast.error("Debe registrar al menos 2 sucursales para crear una ruta");
+              return;
+            }
+            openCreate();
+          }}
+          leftIcon={<Plus className="w-3.5 h-3.5" />}
+        >
+          Nueva ruta
         </Button>
       </div>
 
-      <Card className="p-0 overflow-hidden">
+      {/* Listado denso */}
+      <div className="rounded-xl border border-slate-800 bg-[#0d1425] overflow-hidden">
         <div className="overflow-x-auto">
           {isLoading ? (
-            <div className="p-12 text-center text-slate-500 text-xs">Cargando rutas...</div>
+            <div className="p-8 text-center text-slate-500 text-xs">Cargando rutas...</div>
           ) : rutas.length === 0 ? (
-            <div className="p-12 text-center text-slate-500 text-xs">No hay rutas registradas</div>
+            <div className="p-8 text-center text-xs text-slate-400">No se encontraron rutas registradas.</div>
           ) : (
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="border-b border-slate-800 bg-slate-950/50 text-slate-400 font-mono uppercase text-[10px] tracking-wider">
-                  <th className="py-3 px-4">ID</th>
-                  <th className="py-3 px-4">Trayecto (Origen → Destino)</th>
-                  <th className="py-3 px-4">Distancia (km)</th>
-                  <th className="py-3 px-4">Tarifa Base</th>
-                  <th className="py-3 px-4 text-right">Acciones</th>
+                <tr className="border-b border-slate-800 bg-slate-900/50 text-slate-400 text-[11px] font-medium">
+                  <th className="py-2.5 px-3">ID</th>
+                  <th className="py-2.5 px-3">Origen</th>
+                  <th className="py-2.5 px-3">Destino</th>
+                  <th className="py-2.5 px-3 text-right">Distancia</th>
+                  <th className="py-2.5 px-3 text-right">Tarifa base</th>
+                  <th className="py-2.5 px-3 text-right">Acciones</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/60 font-medium font-mono">
-                {rutas.map((r) => {
-                  const orig = sucursalesMap.get(r.idSucursalOrigen) || `Agencia #${r.idSucursalOrigen}`;
-                  const dest = sucursalesMap.get(r.idSucursalDestino) || `Agencia #${r.idSucursalDestino}`;
-
-                  return (
-                    <tr key={r.id} className="hover:bg-slate-800/30 transition-colors">
-                      <td className="py-3 px-4 text-slate-400 font-bold">#{r.id}</td>
-                      <td className="py-3 px-4 text-slate-100 font-bold font-sans">
-                        <span className="text-amber-400">{orig}</span>
-                        <ArrowRight className="inline-block w-3.5 h-3.5 mx-2 text-slate-500" />
-                        <span className="text-indigo-400">{dest}</span>
-                      </td>
-                      <td className="py-3 px-4 text-slate-300">{r.distanciaKm} km</td>
-                      <td className="py-3 px-4 text-emerald-400 font-bold">
-                        {formatCurrency(r.tarifaBase)}
-                      </td>
-                      <td className="py-3 px-4 text-right font-sans">
-                        <div className="flex items-center justify-end gap-1.5">
-                          <button
-                            onClick={() => openEdit(r)}
-                            className="p-1.5 text-slate-400 hover:text-amber-400 hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
-                          >
-                            <Edit2 className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(r.id)}
-                            className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors cursor-pointer"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
+              <tbody className="divide-y divide-slate-800/60">
+                {rutas.map((r) => (
+                  <tr key={r.id} className="hover:bg-slate-900/40 transition-colors">
+                    <td className="py-2 px-3 font-mono text-slate-400">#{r.id}</td>
+                    <td className="py-2 px-3 text-slate-200">
+                      {sucursalesMap.get(r.idSucursalOrigen) || `Sucursal #${r.idSucursalOrigen}`}
+                    </td>
+                    <td className="py-2 px-3 text-slate-200">
+                      {sucursalesMap.get(r.idSucursalDestino) || `Sucursal #${r.idSucursalDestino}`}
+                    </td>
+                    <td className="py-2 px-3 text-right text-slate-300 tabular-nums">{r.distanciaKm} km</td>
+                    <td className="py-2 px-3 text-right text-slate-200 font-medium tabular-nums">
+                      {formatCurrency(r.tarifaBase)}
+                    </td>
+                    <td className="py-2 px-3 text-right">
+                      <div className="flex items-center justify-end gap-1">
+                        <button
+                          onClick={() => openEdit(r)}
+                          className="p-1 text-slate-400 hover:text-slate-200 hover:bg-slate-800 rounded transition-colors cursor-pointer"
+                          title="Editar"
+                        >
+                          <Edit2 className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(r.id)}
+                          className="p-1 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded transition-colors cursor-pointer"
+                          title="Eliminar"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           )}
         </div>
-      </Card>
+      </div>
 
+      {/* Formulario modal hasta 720px */}
       <Modal
         isOpen={isModalOpen}
         onClose={closeModal}
-        title={editingItem ? "Editar Ruta" : "Nueva Ruta"}
-        description="Establezca la conexión física entre dos sucursales activas."
+        title={editingItem ? "Editar Ruta" : "Nueva Ruta de Distribución"}
+        description="Configure la relación de agencias origen y destino."
+        maxWidth="720"
       >
         <form
           onSubmit={(e) => {
             e.preventDefault();
             saveMutation.mutate();
           }}
-          className="space-y-4"
+          className="space-y-3"
         >
-          <Select
-            label="Sucursal de Origen"
-            value={idOrigen}
-            onChange={(e) => setIdOrigen(Number(e.target.value))}
-            required
-          >
-            <option value="0">-- Seleccione Origen --</option>
-            {sucursales.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.nombre} (#{s.id})
-              </option>
-            ))}
-          </Select>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <Select
+              label="Sucursal de origen"
+              value={idOrigen}
+              onChange={(e) => setIdOrigen(Number(e.target.value))}
+              required
+            >
+              <option value="0">-- Seleccione origen --</option>
+              {sucursales.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.nombre}
+                </option>
+              ))}
+            </Select>
 
-          <Select
-            label="Sucursal de Destino"
-            value={idDestino}
-            onChange={(e) => setIdDestino(Number(e.target.value))}
-            required
-          >
-            <option value="0">-- Seleccione Destino --</option>
-            {sucursales.map((s) => (
-              <option key={s.id} value={s.id} disabled={s.id === Number(idOrigen)}>
-                {s.nombre} {s.id === Number(idOrigen) ? "(Misma sucursal)" : ""}
-              </option>
-            ))}
-          </Select>
+            <Select
+              label="Sucursal de destino"
+              value={idDestino}
+              onChange={(e) => setIdDestino(Number(e.target.value))}
+              required
+            >
+              <option value="0">-- Seleccione destino --</option>
+              {sucursales.map((s) => (
+                <option key={s.id} value={s.id} disabled={s.id === Number(idOrigen)}>
+                  {s.nombre} {s.id === Number(idOrigen) ? "(Misma sucursal)" : ""}
+                </option>
+              ))}
+            </Select>
+          </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <Input
-              label="Distancia en Kilómetros (km)"
+              label="Distancia aproximada (km)"
               type="number"
               step="0.1"
-              min="0.1"
+              min="1"
               value={distanciaKm}
               onChange={(e) => setDistanciaKm(parseFloat(e.target.value) || 0)}
               required
             />
             <Input
-              label="Tarifa Base de Ruta (Q)"
+              label="Tarifa base de flete (Q)"
               type="number"
-              step="0.1"
+              step="0.01"
               min="0"
               value={tarifaBase}
               onChange={(e) => setTarifaBase(parseFloat(e.target.value) || 0)}
@@ -242,12 +255,12 @@ export function RutasPage() {
             />
           </div>
 
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-800">
-            <Button type="button" variant="outline" onClick={closeModal}>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button type="button" variant="outline" size="sm" onClick={closeModal}>
               Cancelar
             </Button>
-            <Button type="submit" variant="primary" isLoading={saveMutation.isPending}>
-              {editingItem ? "Actualizar" : "Guardar Ruta"}
+            <Button type="submit" variant="primary" size="sm" isLoading={saveMutation.isPending}>
+              Guardar
             </Button>
           </div>
         </form>

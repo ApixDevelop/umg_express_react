@@ -1,12 +1,11 @@
 ﻿import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { tarifasApi } from "@/api/catalogos";
-import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Modal } from "@/components/ui/Modal";
 import { formatCurrency } from "@/lib/utils";
-import { PlusCircle, Edit2, Trash2, Tag, Search } from "lucide-react";
+import { Plus, Edit2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import type { Tarifa } from "@/types";
 
@@ -44,7 +43,7 @@ export function TarifasPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tarifas"] });
-      toast.success(editingItem ? "Tarifa actualizada" : "Tarifa creada exitosamente");
+      toast.success(editingItem ? "Tarifa actualizada" : "Tarifa registrada exitosamente");
       closeModal();
     },
     onError: (err: any) => {
@@ -56,7 +55,7 @@ export function TarifasPage() {
     mutationFn: (id: number) => tarifasApi.eliminar(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tarifas"] });
-      toast.success("Tarifa dada de baja lógica");
+      toast.success("Tarifa dada de baja");
     },
     onError: (err: any) => {
       toast.error(err.message || "Error al eliminar tarifa");
@@ -87,64 +86,72 @@ export function TarifasPage() {
   };
 
   const handleDelete = (id: number, name: string) => {
-    if (window.confirm(`¿Está seguro de dar de baja lógica a la tarifa "${name}"?`)) {
+    if (window.confirm(`¿Está seguro de dar de baja la tarifa "${name}"?`)) {
       deleteMutation.mutate(id);
     }
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-200">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="space-y-5">
+      {/* Cabecera */}
+      <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-extrabold text-white font-heading">
-            Catálogo de Tarifas y Tipos de Carga
-          </h2>
-          <p className="text-xs sm:text-sm text-slate-400 mt-1">
-            Precios por kilogramo, metro cúbico y recargos especiales de paquetería.
+          <h1 className="text-xl font-semibold text-slate-100">Tarifas y Tipos de Carga</h1>
+          <p className="text-xs text-slate-400 mt-0.5">
+            Precios por kilogramo, metro cúbico y recargos especiales por mercancía
           </p>
         </div>
-        <Button variant="primary" onClick={openCreate} leftIcon={<PlusCircle className="w-4 h-4" />}>
-          Nueva Tarifa
+        <Button variant="primary" size="sm" onClick={openCreate} leftIcon={<Plus className="w-3.5 h-3.5" />}>
+          Nueva tarifa
         </Button>
       </div>
 
-      <Card className="p-0 overflow-hidden">
+      {/* Listado denso */}
+      <div className="rounded-xl border border-slate-800 bg-[#0d1425] overflow-hidden">
         <div className="overflow-x-auto">
           {isLoading ? (
-            <div className="p-12 text-center text-slate-500 text-xs">Cargando tarifas...</div>
+            <div className="p-8 text-center text-slate-500 text-xs">Cargando tarifas...</div>
           ) : tarifas.length === 0 ? (
-            <div className="p-12 text-center text-slate-500 text-xs">No hay tarifas registradas</div>
+            <div className="p-8 text-center text-xs text-slate-400">No se encontraron tarifas registradas.</div>
           ) : (
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="border-b border-slate-800 bg-slate-950/50 text-slate-400 font-mono uppercase text-[10px] tracking-wider">
-                  <th className="py-3 px-4">ID</th>
-                  <th className="py-3 px-4">Tipo de Carga</th>
-                  <th className="py-3 px-4">Precio / kg</th>
-                  <th className="py-3 px-4">Precio / m³</th>
-                  <th className="py-3 px-4">Recargo Especial</th>
-                  <th className="py-3 px-4 text-right">Acciones</th>
+                <tr className="border-b border-slate-800 bg-slate-900/50 text-slate-400 text-[11px] font-medium">
+                  <th className="py-2.5 px-3">ID</th>
+                  <th className="py-2.5 px-3">Tipo de carga</th>
+                  <th className="py-2.5 px-3 text-right">Precio / kg</th>
+                  <th className="py-2.5 px-3 text-right">Precio / m³</th>
+                  <th className="py-2.5 px-3 text-right">Recargo especial</th>
+                  <th className="py-2.5 px-3 text-right">Acciones</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/60 font-medium font-mono">
+              <tbody className="divide-y divide-slate-800/60">
                 {tarifas.map((t) => (
-                  <tr key={t.id} className="hover:bg-slate-800/30 transition-colors">
-                    <td className="py-3 px-4 text-slate-400 font-bold">#{t.id}</td>
-                    <td className="py-3 px-4 text-amber-400 font-bold font-sans">{t.tipoCarga}</td>
-                    <td className="py-3 px-4 text-slate-200">{formatCurrency(t.precioPorKg)}</td>
-                    <td className="py-3 px-4 text-slate-200">{formatCurrency(t.precioPorM3)}</td>
-                    <td className="py-3 px-4 text-slate-300">{formatCurrency(t.recargoEspecial)}</td>
-                    <td className="py-3 px-4 text-right font-sans">
-                      <div className="flex items-center justify-end gap-1.5">
+                  <tr key={t.id} className="hover:bg-slate-900/40 transition-colors">
+                    <td className="py-2 px-3 font-mono text-slate-400">#{t.id}</td>
+                    <td className="py-2 px-3 text-slate-100 font-medium">{t.tipoCarga}</td>
+                    <td className="py-2 px-3 text-right text-slate-300 tabular-nums">
+                      {formatCurrency(t.precioPorKg)}
+                    </td>
+                    <td className="py-2 px-3 text-right text-slate-300 tabular-nums">
+                      {formatCurrency(t.precioPorM3)}
+                    </td>
+                    <td className="py-2 px-3 text-right text-slate-300 tabular-nums">
+                      {formatCurrency(t.recargoEspecial)}
+                    </td>
+                    <td className="py-2 px-3 text-right">
+                      <div className="flex items-center justify-end gap-1">
                         <button
                           onClick={() => openEdit(t)}
-                          className="p-1.5 text-slate-400 hover:text-amber-400 hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
+                          className="p-1 text-slate-400 hover:text-slate-200 hover:bg-slate-800 rounded transition-colors cursor-pointer"
+                          title="Editar"
                         >
                           <Edit2 className="w-3.5 h-3.5" />
                         </button>
                         <button
                           onClick={() => handleDelete(t.id, t.tipoCarga)}
-                          className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors cursor-pointer"
+                          className="p-1 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded transition-colors cursor-pointer"
+                          title="Eliminar"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
@@ -156,33 +163,35 @@ export function TarifasPage() {
             </table>
           )}
         </div>
-      </Card>
+      </div>
 
+      {/* Formulario modal hasta 720px */}
       <Modal
         isOpen={isModalOpen}
         onClose={closeModal}
         title={editingItem ? "Editar Tarifa" : "Nueva Tarifa"}
-        description="Parámetros de tarificación de acuerdo al tipo de carga."
+        description="Parámetros de tarificación según la naturaleza de la carga."
+        maxWidth="720"
       >
         <form
           onSubmit={(e) => {
             e.preventDefault();
             saveMutation.mutate();
           }}
-          className="space-y-4"
+          className="space-y-3"
         >
           <Input
-            label="Tipo de Carga / Categoría"
+            label="Tipo de carga o categoría"
             value={tipoCarga}
             onChange={(e) => setTipoCarga(e.target.value)}
-            placeholder="Ej: Estándar, Perecedero, Frágil, Urgente"
-            maxLength={31}
+            placeholder="Ej: Frágil / Perecedero / Sobredimensionado"
+            maxLength={39}
             required
           />
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <Input
-              label="Precio / kg (Q)"
+              label="Precio por kg (Q)"
               type="number"
               step="0.01"
               min="0"
@@ -191,7 +200,7 @@ export function TarifasPage() {
               required
             />
             <Input
-              label="Precio / m³ (Q)"
+              label="Precio por m³ (Q)"
               type="number"
               step="0.01"
               min="0"
@@ -200,7 +209,7 @@ export function TarifasPage() {
               required
             />
             <Input
-              label="Recargo Especial (Q)"
+              label="Recargo fijo (Q)"
               type="number"
               step="0.01"
               min="0"
@@ -210,12 +219,12 @@ export function TarifasPage() {
             />
           </div>
 
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-800">
-            <Button type="button" variant="outline" onClick={closeModal}>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button type="button" variant="outline" size="sm" onClick={closeModal}>
               Cancelar
             </Button>
-            <Button type="submit" variant="primary" isLoading={saveMutation.isPending}>
-              {editingItem ? "Actualizar" : "Guardar Tarifa"}
+            <Button type="submit" variant="primary" size="sm" isLoading={saveMutation.isPending}>
+              Guardar
             </Button>
           </div>
         </form>
