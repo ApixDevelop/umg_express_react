@@ -40,27 +40,27 @@ export function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#090d16] flex flex-col justify-center items-center p-4">
+    <div className="min-h-screen bg-bg flex flex-col justify-center items-center p-4">
       <div className="w-full max-w-sm">
         {/* Brand */}
-        <div className="flex items-center justify-center gap-3 mb-6">
-          <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-amber-500 text-slate-950 font-bold">
-            <Package className="w-5 h-5" />
+        <div className="flex items-center justify-center gap-2.5 mb-6">
+          <div className="flex items-center justify-center w-8 h-8 rounded bg-accent text-on-accent font-bold">
+            <Package className="w-4 h-4" />
           </div>
           <div>
             <div className="flex items-center gap-1.5 leading-none">
-              <span className="text-base font-bold text-white tracking-tight">UMG</span>
-              <span className="text-base font-bold text-amber-500 tracking-tight">Express</span>
+              <span className="text-base font-bold text-text tracking-tight">UMG</span>
+              <span className="text-base font-bold text-accent tracking-tight">Express</span>
             </div>
-            <p className="text-[11px] text-slate-400 mt-0.5">Control logístico</p>
+            <p className="text-[11px] text-text-muted mt-0.5">Control logístico</p>
           </div>
         </div>
 
         {/* Card */}
-        <div className="rounded-xl border border-slate-800 bg-[#0d1425] p-5 space-y-4">
+        <div className="rounded-panel border border-border bg-surface p-5 space-y-4">
           <div>
-            <h1 className="text-sm font-semibold text-slate-100">Iniciar sesión</h1>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <h1 className="text-[16px] font-semibold text-text">Iniciar sesión</h1>
+            <p className="text-[12px] text-text-muted mt-0.5">
               Ingrese sus credenciales de acceso
             </p>
           </div>
@@ -96,24 +96,24 @@ export function LoginPage() {
           </form>
 
           {/* Cuentas de demostración */}
-          <div className="pt-3 border-t border-slate-800 space-y-2">
-            <p className="text-[11px] text-slate-400">Credenciales de prueba:</p>
-            <div className="grid grid-cols-2 gap-2 text-xs">
+          <div className="pt-3 border-t border-border space-y-2">
+            <p className="text-[11px] text-text-muted">Credenciales de prueba:</p>
+            <div className="grid grid-cols-2 gap-2 text-[12px]">
               <button
                 type="button"
                 onClick={() => setDemoCredentials("admin", "admin123")}
-                className="p-2 rounded-lg bg-slate-900 border border-slate-800 text-left hover:border-slate-700 transition-colors cursor-pointer"
+                className="p-2 rounded-control bg-surface-hover border border-border text-left hover:border-border-input transition-colors cursor-pointer"
               >
-                <div className="font-mono text-xs text-slate-200">admin</div>
-                <div className="text-[10px] text-slate-500">Administrador</div>
+                <div className="text-[12px] text-text font-medium">admin</div>
+                <div className="text-[11px] text-text-muted">Administrador</div>
               </button>
               <button
                 type="button"
                 onClick={() => setDemoCredentials("operador1", "op123password")}
-                className="p-2 rounded-lg bg-slate-900 border border-slate-800 text-left hover:border-slate-700 transition-colors cursor-pointer"
+                className="p-2 rounded-control bg-surface-hover border border-border text-left hover:border-border-input transition-colors cursor-pointer"
               >
-                <div className="font-mono text-xs text-slate-200">operador1</div>
-                <div className="text-[10px] text-slate-500">Operador</div>
+                <div className="text-[12px] text-text font-medium">operador1</div>
+                <div className="text-[11px] text-text-muted">Operador</div>
               </button>
             </div>
           </div>

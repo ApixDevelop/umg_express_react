@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Modal } from "@/components/ui/Modal";
 import { formatCurrency } from "@/lib/utils";
-import { Plus, Edit2, Trash2 } from "lucide-react";
+import { Edit2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import type { Ruta } from "@/types";
 
@@ -56,7 +56,7 @@ export function RutasPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["rutas"] });
-      toast.success(editingItem ? "Ruta actualizada" : "Ruta creada exitosamente");
+      toast.success(editingItem ? "Ruta actualizada" : "Ruta registrada");
       closeModal();
     },
     onError: (err: any) => {
@@ -105,15 +105,10 @@ export function RutasPage() {
   };
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       {/* Cabecera */}
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-semibold text-slate-100">Rutas de Distribución</h1>
-          <p className="text-xs text-slate-400 mt-0.5">
-            Trayectos interdepartamentales, kilometraje y tarifa base de flete
-          </p>
-        </div>
+        <h1 className="text-[20px] font-semibold text-text">Rutas de distribución</h1>
         <Button
           variant="primary"
           size="sm"
@@ -124,57 +119,56 @@ export function RutasPage() {
             }
             openCreate();
           }}
-          leftIcon={<Plus className="w-3.5 h-3.5" />}
         >
           Nueva ruta
         </Button>
       </div>
 
       {/* Listado denso */}
-      <div className="rounded-xl border border-slate-800 bg-[#0d1425] overflow-hidden">
+      <div className="rounded-panel border border-border bg-surface overflow-hidden">
         <div className="overflow-x-auto">
           {isLoading ? (
-            <div className="p-8 text-center text-slate-500 text-xs">Cargando rutas...</div>
+            <div className="p-6 text-center text-text-muted text-[13px]">Cargando rutas...</div>
           ) : rutas.length === 0 ? (
-            <div className="p-8 text-center text-xs text-slate-400">No se encontraron rutas registradas.</div>
+            <div className="p-6 text-center text-[13px] text-text-muted">No se encontraron rutas registradas.</div>
           ) : (
-            <table className="w-full text-left text-xs border-collapse">
+            <table className="w-full text-left text-[13px] border-collapse">
               <thead>
-                <tr className="border-b border-slate-800 bg-slate-900/50 text-slate-400 text-[11px] font-medium">
-                  <th className="py-2.5 px-3">ID</th>
-                  <th className="py-2.5 px-3">Origen</th>
-                  <th className="py-2.5 px-3">Destino</th>
-                  <th className="py-2.5 px-3 text-right">Distancia</th>
-                  <th className="py-2.5 px-3 text-right">Tarifa base</th>
-                  <th className="py-2.5 px-3 text-right">Acciones</th>
+                <tr className="border-b border-border text-text-muted text-[12px] font-medium">
+                  <th className="py-2 px-3 font-medium">ID</th>
+                  <th className="py-2 px-3 font-medium">Origen</th>
+                  <th className="py-2 px-3 font-medium">Destino</th>
+                  <th className="py-2 px-3 text-right font-medium">Distancia (km)</th>
+                  <th className="py-2 px-3 text-right font-medium">Tarifa base</th>
+                  <th className="py-2 px-3 text-right font-medium">Acciones</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/60">
+              <tbody className="divide-y divide-border">
                 {rutas.map((r) => (
-                  <tr key={r.id} className="hover:bg-slate-900/40 transition-colors">
-                    <td className="py-2 px-3 font-mono text-slate-400">#{r.id}</td>
-                    <td className="py-2 px-3 text-slate-200">
+                  <tr key={r.id} className="hover:bg-surface-hover transition-colors h-10">
+                    <td className="py-2 px-3 text-text-muted tabular-nums">#{r.id}</td>
+                    <td className="py-2 px-3 text-text">
                       {sucursalesMap.get(r.idSucursalOrigen) || `Sucursal #${r.idSucursalOrigen}`}
                     </td>
-                    <td className="py-2 px-3 text-slate-200">
+                    <td className="py-2 px-3 text-text">
                       {sucursalesMap.get(r.idSucursalDestino) || `Sucursal #${r.idSucursalDestino}`}
                     </td>
-                    <td className="py-2 px-3 text-right text-slate-300 tabular-nums">{r.distanciaKm} km</td>
-                    <td className="py-2 px-3 text-right text-slate-200 font-medium tabular-nums">
+                    <td className="py-2 px-3 text-right text-text tabular-nums">{r.distanciaKm}</td>
+                    <td className="py-2 px-3 text-right text-text font-medium tabular-nums">
                       {formatCurrency(r.tarifaBase)}
                     </td>
                     <td className="py-2 px-3 text-right">
                       <div className="flex items-center justify-end gap-1">
                         <button
                           onClick={() => openEdit(r)}
-                          className="p-1 text-slate-400 hover:text-slate-200 hover:bg-slate-800 rounded transition-colors cursor-pointer"
+                          className="p-1 text-text-muted hover:text-text hover:bg-surface-hover rounded transition-colors cursor-pointer"
                           title="Editar"
                         >
                           <Edit2 className="w-3.5 h-3.5" />
                         </button>
                         <button
                           onClick={() => handleDelete(r.id)}
-                          className="p-1 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded transition-colors cursor-pointer"
+                          className="p-1 text-text-muted hover:text-danger hover:bg-danger/10 rounded transition-colors cursor-pointer"
                           title="Eliminar"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -193,7 +187,7 @@ export function RutasPage() {
       <Modal
         isOpen={isModalOpen}
         onClose={closeModal}
-        title={editingItem ? "Editar Ruta" : "Nueva Ruta de Distribución"}
+        title={editingItem ? "Editar ruta" : "Nueva ruta"}
         description="Configure la relación de agencias origen y destino."
         maxWidth="720"
       >
@@ -255,12 +249,12 @@ export function RutasPage() {
             />
           </div>
 
-          <div className="flex justify-end gap-2 pt-2">
+          <div className="flex justify-end gap-2 pt-2 border-t border-border">
             <Button type="button" variant="outline" size="sm" onClick={closeModal}>
               Cancelar
             </Button>
             <Button type="submit" variant="primary" size="sm" isLoading={saveMutation.isPending}>
-              Guardar
+              Guardar ruta
             </Button>
           </div>
         </form>

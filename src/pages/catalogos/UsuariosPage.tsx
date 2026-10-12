@@ -36,17 +36,17 @@ export function UsuariosPage() {
   };
 
   return (
-    <div className="space-y-5 max-w-[720px]">
+    <div className="space-y-4 max-w-[720px]">
       {/* Cabecera */}
       <div>
-        <h1 className="text-xl font-semibold text-slate-100">Usuarios</h1>
-        <p className="text-xs text-slate-400 mt-0.5">
-          Alta de credenciales y asignación de roles de acceso al sistema
+        <h1 className="text-[20px] font-semibold text-text">Usuarios</h1>
+        <p className="text-[12px] text-text-muted mt-0.5">
+          Alta de credenciales y asignación de roles de acceso al sistema.
         </p>
       </div>
 
-      <div className="rounded-xl border border-slate-800 bg-[#0d1425] p-5">
-        <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="rounded-panel border border-border bg-surface p-4">
+        <form onSubmit={handleSubmit} className="space-y-3">
           <Input
             label="Nombre completo"
             value={nombre}

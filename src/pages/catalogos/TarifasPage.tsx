@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Modal } from "@/components/ui/Modal";
 import { formatCurrency } from "@/lib/utils";
-import { Plus, Edit2, Trash2 } from "lucide-react";
+import { Edit2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import type { Tarifa } from "@/types";
 
@@ -43,7 +43,7 @@ export function TarifasPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tarifas"] });
-      toast.success(editingItem ? "Tarifa actualizada" : "Tarifa registrada exitosamente");
+      toast.success(editingItem ? "Tarifa actualizada" : "Tarifa registrada");
       closeModal();
     },
     onError: (err: any) => {
@@ -92,65 +92,60 @@ export function TarifasPage() {
   };
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       {/* Cabecera */}
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-semibold text-slate-100">Tarifas y Tipos de Carga</h1>
-          <p className="text-xs text-slate-400 mt-0.5">
-            Precios por kilogramo, metro cúbico y recargos especiales por mercancía
-          </p>
-        </div>
-        <Button variant="primary" size="sm" onClick={openCreate} leftIcon={<Plus className="w-3.5 h-3.5" />}>
+        <h1 className="text-[20px] font-semibold text-text">Tarifas y tipos de carga</h1>
+        <Button variant="primary" size="sm" onClick={openCreate}>
           Nueva tarifa
         </Button>
       </div>
 
       {/* Listado denso */}
-      <div className="rounded-xl border border-slate-800 bg-[#0d1425] overflow-hidden">
+      <div className="rounded-panel border border-border bg-surface overflow-hidden">
         <div className="overflow-x-auto">
           {isLoading ? (
-            <div className="p-8 text-center text-slate-500 text-xs">Cargando tarifas...</div>
+            <div className="p-6 text-center text-text-muted text-[13px]">Cargando tarifas...</div>
           ) : tarifas.length === 0 ? (
-            <div className="p-8 text-center text-xs text-slate-400">No se encontraron tarifas registradas.</div>
+            <div className="p-6 text-center text-[13px] text-text-muted">No se encontraron tarifas registradas.</div>
           ) : (
-            <table className="w-full text-left text-xs border-collapse">
+            <table className="w-full text-left text-[13px] border-collapse">
               <thead>
-                <tr className="border-b border-slate-800 bg-slate-900/50 text-slate-400 text-[11px] font-medium">
-                  <th className="py-2.5 px-3">ID</th>
-                  <th className="py-2.5 px-3">Tipo de carga</th>
-                  <th className="py-2.5 px-3 text-right">Precio / kg</th>
-                  <th className="py-2.5 px-3 text-right">Precio / m³</th>
-                  <th className="py-2.5 px-3 text-right">Recargo especial</th>
-                  <th className="py-2.5 px-3 text-right">Acciones</th>
+                <tr className="border-b border-border text-text-muted text-[12px] font-medium">
+                  <th className="py-2 px-3 font-medium">ID</th>
+                  <th className="py-2 px-3 font-medium">Tipo de carga</th>
+                  <th className="py-2 px-3 text-right font-medium">Precio / kg</th>
+                  <th className="py-2 px-3 text-right font-medium">Precio / m³</th>
+                  <th className="py-2 px-3 text-right font-medium">Recargo especial</th>
+                  <th className="py-2 px-3 text-right font-medium">Acciones</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/60">
+              <tbody className="divide-y divide-border">
                 {tarifas.map((t) => (
-                  <tr key={t.id} className="hover:bg-slate-900/40 transition-colors">
-                    <td className="py-2 px-3 font-mono text-slate-400">#{t.id}</td>
-                    <td className="py-2 px-3 text-slate-100 font-medium">{t.tipoCarga}</td>
-                    <td className="py-2 px-3 text-right text-slate-300 tabular-nums">
+                  <tr key={t.id} className="hover:bg-surface-hover transition-colors h-10">
+                    <td className="py-2 px-3 text-text-muted tabular-nums">#{t.id}</td>
+                    <td className="py-2 px-3 text-text font-medium">{t.tipoCarga}</td>
+                    <td className="py-2 px-3 text-right text-text tabular-nums">
                       {formatCurrency(t.precioPorKg)}
                     </td>
-                    <td className="py-2 px-3 text-right text-slate-300 tabular-nums">
+                    <td className="py-2 px-3 text-right text-text tabular-nums">
                       {formatCurrency(t.precioPorM3)}
                     </td>
-                    <td className="py-2 px-3 text-right text-slate-300 tabular-nums">
+                    <td className="py-2 px-3 text-right text-text tabular-nums">
                       {formatCurrency(t.recargoEspecial)}
                     </td>
                     <td className="py-2 px-3 text-right">
                       <div className="flex items-center justify-end gap-1">
                         <button
                           onClick={() => openEdit(t)}
-                          className="p-1 text-slate-400 hover:text-slate-200 hover:bg-slate-800 rounded transition-colors cursor-pointer"
+                          className="p-1 text-text-muted hover:text-text hover:bg-surface-hover rounded transition-colors cursor-pointer"
                           title="Editar"
                         >
                           <Edit2 className="w-3.5 h-3.5" />
                         </button>
                         <button
                           onClick={() => handleDelete(t.id, t.tipoCarga)}
-                          className="p-1 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded transition-colors cursor-pointer"
+                          className="p-1 text-text-muted hover:text-danger hover:bg-danger/10 rounded transition-colors cursor-pointer"
                           title="Eliminar"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -169,7 +164,7 @@ export function TarifasPage() {
       <Modal
         isOpen={isModalOpen}
         onClose={closeModal}
-        title={editingItem ? "Editar Tarifa" : "Nueva Tarifa"}
+        title={editingItem ? "Editar tarifa" : "Nueva tarifa"}
         description="Parámetros de tarificación según la naturaleza de la carga."
         maxWidth="720"
       >
@@ -219,12 +214,12 @@ export function TarifasPage() {
             />
           </div>
 
-          <div className="flex justify-end gap-2 pt-2">
+          <div className="flex justify-end gap-2 pt-2 border-t border-border">
             <Button type="button" variant="outline" size="sm" onClick={closeModal}>
               Cancelar
             </Button>
             <Button type="submit" variant="primary" size="sm" isLoading={saveMutation.isPending}>
-              Guardar
+              Guardar tarifa
             </Button>
           </div>
         </form>

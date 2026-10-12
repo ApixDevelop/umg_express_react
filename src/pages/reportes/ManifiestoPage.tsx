@@ -5,13 +5,12 @@ import { vehiculosApi } from "@/api/catalogos";
 import { Button } from "@/components/ui/Button";
 import { Select } from "@/components/ui/Select";
 import { formatCurrency, formatWeight, formatVolume } from "@/lib/utils";
-import { Printer } from "lucide-react";
 import type { ManifiestoInfo } from "@/types";
 
 export function ManifiestoPage() {
   const [selectedVehiculoId, setSelectedVehiculoId] = useState<number>(0);
 
-  const { data: vehiculos = [], isLoading: loadingVehiculos } = useQuery({
+  const { data: vehiculos = [] } = useQuery({
     queryKey: ["vehiculos"],
     queryFn: () => vehiculosApi.listar(),
   });
@@ -31,22 +30,16 @@ export function ManifiestoPage() {
   const totalFlete = manifiesto?.guias.reduce((acc, g) => acc + (g.costoTotal || 0), 0) || 0;
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       {/* Cabecera */}
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-semibold text-slate-100">Manifiesto de Carga</h1>
-          <p className="text-xs text-slate-400 mt-0.5">
-            Relación de paquetes despachados por unidad vehicular y piloto responsable
-          </p>
-        </div>
+        <h1 className="text-[20px] font-semibold text-text">Manifiesto de carga</h1>
         {manifiesto && (
           <Button
-            variant="outline"
+            variant="secondary"
             size="sm"
             onClick={() => window.print()}
-            leftIcon={<Printer className="w-3.5 h-3.5" />}
-            className="no-print text-xs"
+            className="no-print"
           >
             Imprimir manifiesto
           </Button>
@@ -54,7 +47,7 @@ export function ManifiestoPage() {
       </div>
 
       {/* Selector de vehículo */}
-      <div className="rounded-xl border border-slate-800 bg-[#0d1425] p-3 no-print max-w-md">
+      <div className="rounded-panel border border-border bg-surface p-3 no-print max-w-sm">
         <Select
           label="Unidad vehicular"
           value={selectedVehiculoId}
@@ -71,31 +64,31 @@ export function ManifiestoPage() {
 
       {/* Manifiesto */}
       {selectedVehiculoId === 0 ? (
-        <div className="rounded-xl border border-slate-800 bg-[#0d1425] p-8 text-center text-xs text-slate-400 no-print">
+        <div className="rounded-panel border border-border bg-surface p-6 text-center text-[13px] text-text-muted no-print">
           Seleccione una unidad vehicular para generar su manifiesto de carga.
         </div>
       ) : loadingManifiesto ? (
-        <div className="rounded-xl border border-slate-800 bg-[#0d1425] p-8 text-center text-xs text-slate-500">
+        <div className="rounded-panel border border-border bg-surface p-6 text-center text-[13px] text-text-muted">
           Cargando manifiesto de carga...
         </div>
       ) : isError ? (
-        <div className="rounded-xl border border-slate-800 bg-[#0d1425] p-6 text-center text-xs text-rose-400">
+        <div className="rounded-panel border border-border bg-surface p-6 text-center text-[13px] text-danger">
           {(error as any)?.message || "No fue posible generar el manifiesto para este vehículo."}
         </div>
       ) : manifiesto ? (
-        <div className="rounded-xl border border-slate-800 bg-[#0d1425] p-5 space-y-4 print:bg-white print:text-black print:border-none print-container">
+        <div className="rounded-panel border border-border bg-surface p-4 space-y-4 print:bg-white print:text-black print:border-none print-container">
           {/* Encabezado del documento */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-800 gap-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-border gap-2">
             <div>
-              <div className="text-xs text-amber-500 font-medium">UMG Express · Manifiesto de Carga</div>
-              <h2 className="text-base font-semibold text-slate-100">
+              <div className="text-[12px] text-accent font-medium">UMG Express · Manifiesto de carga</div>
+              <h2 className="text-[16px] font-semibold text-text">
                 Vehículo {manifiesto.vehiculo.placa} ({manifiesto.vehiculo.marcaModelo})
               </h2>
             </div>
-            <div className="text-xs text-slate-400 space-y-0.5 sm:text-right">
-              <p>Piloto: <span className="text-slate-200">{manifiesto.piloto?.nombre || "No asignado"}</span></p>
+            <div className="text-[12px] text-text-muted space-y-0.5 sm:text-right">
+              <p>Piloto: <span className="text-text">{manifiesto.piloto?.nombre || "No asignado"}</span></p>
               <p>
-                Ruta: <span className="text-slate-200">
+                Ruta: <span className="text-text">
                   {manifiesto.ruta?.sucursalOrigen?.nombre || "Origen"} → {manifiesto.ruta?.sucursalDestino?.nombre || "Destino"}
                 </span>
               </p>
@@ -104,53 +97,53 @@ export function ManifiestoPage() {
 
           {/* Tabla densa con totales al pie */}
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs border-collapse">
+            <table className="w-full text-left text-[13px] border-collapse">
               <thead>
-                <tr className="border-b border-slate-800 bg-slate-900/50 text-slate-400 text-[11px] font-medium">
-                  <th className="py-2.5 px-3">No. guía</th>
-                  <th className="py-2.5 px-3">Remitente</th>
-                  <th className="py-2.5 px-3">Destinatario</th>
-                  <th className="py-2.5 px-3 text-right">Peso fact.</th>
-                  <th className="py-2.5 px-3 text-right">Volumen</th>
-                  <th className="py-2.5 px-3 text-right">Flete</th>
+                <tr className="border-b border-border text-text-muted text-[12px] font-medium">
+                  <th className="py-2 px-3 font-medium">No. guía</th>
+                  <th className="py-2 px-3 font-medium">Remitente</th>
+                  <th className="py-2 px-3 font-medium">Destinatario</th>
+                  <th className="py-2 px-3 text-right font-medium">Peso (kg)</th>
+                  <th className="py-2 px-3 text-right font-medium">Volumen (m³)</th>
+                  <th className="py-2 px-3 text-right font-medium">Flete</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/60">
+              <tbody className="divide-y divide-border">
                 {manifiesto.guias.map((g) => (
-                  <tr key={g.numeroGuia} className="hover:bg-slate-900/40 transition-colors">
-                    <td className="py-2 px-3 font-mono font-medium text-slate-200">
+                  <tr key={g.numeroGuia} className="hover:bg-surface-hover transition-colors h-10">
+                    <td className="py-2 px-3 text-text tabular-nums">
                       {g.numeroGuia}
                     </td>
-                    <td className="py-2 px-3 text-slate-300">
+                    <td className="py-2 px-3 text-text">
                       {g.remitente?.nombre || "-"}
                     </td>
-                    <td className="py-2 px-3 text-slate-300">
+                    <td className="py-2 px-3 text-text">
                       {g.destinatario?.nombre || "-"}
                     </td>
-                    <td className="py-2 px-3 text-right text-slate-300 tabular-nums">
+                    <td className="py-2 px-3 text-right text-text tabular-nums">
                       {formatWeight(g.pesoFacturableKg)}
                     </td>
-                    <td className="py-2 px-3 text-right text-slate-400 tabular-nums">
+                    <td className="py-2 px-3 text-right text-text-muted tabular-nums">
                       {formatVolume(g.volumenM3)}
                     </td>
-                    <td className="py-2 px-3 text-right text-slate-200 font-medium tabular-nums">
+                    <td className="py-2 px-3 text-right text-text tabular-nums font-medium">
                       {formatCurrency(g.costoTotal)}
                     </td>
                   </tr>
                 ))}
               </tbody>
-              <tfoot className="border-t-2 border-slate-800 bg-slate-900/70 text-slate-200 font-medium text-xs">
+              <tfoot className="border-t-2 border-border bg-surface-hover text-text font-medium text-[13px]">
                 <tr>
-                  <td className="py-2.5 px-3" colSpan={3}>
+                  <td className="py-2 px-3" colSpan={3}>
                     Totales ({manifiesto.resumen.totalGuias} paquetes)
                   </td>
-                  <td className="py-2.5 px-3 text-right tabular-nums">
+                  <td className="py-2 px-3 text-right tabular-nums">
                     {formatWeight(manifiesto.resumen.pesoTotalKg)}
                   </td>
-                  <td className="py-2.5 px-3 text-right tabular-nums">
+                  <td className="py-2 px-3 text-right tabular-nums">
                     {formatVolume(manifiesto.resumen.volumenTotalM3)}
                   </td>
-                  <td className="py-2.5 px-3 text-right tabular-nums font-semibold text-amber-500">
+                  <td className="py-2 px-3 text-right tabular-nums font-semibold text-accent">
                     {formatCurrency(totalFlete)}
                   </td>
                 </tr>
@@ -159,11 +152,11 @@ export function ManifiestoPage() {
           </div>
 
           {/* Firmas para impresión */}
-          <div className="pt-8 grid grid-cols-2 gap-8 text-center text-xs text-slate-400 no-screen print:grid">
-            <div className="border-t border-slate-700 pt-2">
+          <div className="pt-8 grid grid-cols-2 gap-8 text-center text-[12px] text-text-muted no-screen print:grid">
+            <div className="border-t border-border-input pt-2">
               Firma del piloto responsable
             </div>
-            <div className="border-t border-slate-700 pt-2">
+            <div className="border-t border-border-input pt-2">
               Firma y sello de despacho
             </div>
           </div>

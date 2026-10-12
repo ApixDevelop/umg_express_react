@@ -4,7 +4,7 @@ import { clientesApi } from "@/api/catalogos";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Modal } from "@/components/ui/Modal";
-import { Plus, Edit2, Trash2, Search } from "lucide-react";
+import { Edit2, Trash2, Search } from "lucide-react";
 import { toast } from "sonner";
 import type { Cliente } from "@/types";
 
@@ -33,7 +33,7 @@ export function ClientesPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["clientes"] });
-      toast.success(editingItem ? "Cliente actualizado" : "Cliente registrado exitosamente");
+      toast.success(editingItem ? "Cliente actualizado" : "Cliente registrado");
       closeModal();
     },
     onError: (err: any) => {
@@ -88,73 +88,68 @@ export function ClientesPage() {
   );
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       {/* Cabecera */}
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-semibold text-slate-100">Clientes</h1>
-          <p className="text-xs text-slate-400 mt-0.5">
-            Registro de remitentes y destinatarios para emisión de guías
-          </p>
-        </div>
-        <Button variant="primary" size="sm" onClick={openCreate} leftIcon={<Plus className="w-3.5 h-3.5" />}>
+        <h1 className="text-[20px] font-semibold text-text">Clientes</h1>
+        <Button variant="primary" size="sm" onClick={openCreate}>
           Nuevo cliente
         </Button>
       </div>
 
       {/* Barra de herramientas */}
-      <div className="rounded-xl border border-slate-800 bg-[#0d1425] p-3">
-        <div className="relative">
-          <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+      <div className="rounded-panel border border-border bg-surface p-3">
+        <div className="relative max-w-md">
+          <Search className="w-3.5 h-3.5 text-text-muted absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
           <input
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Buscar por NIT, nombre o teléfono..."
-            className="w-full bg-slate-900 text-slate-100 text-xs rounded-lg border border-slate-750 pl-8 pr-3 py-1.5 focus:outline-none focus:border-amber-500 font-mono"
+            placeholder="Buscar por NIT, nombre o teléfono"
+            className="w-full h-8 bg-surface text-text text-[13px] rounded-control border border-border-input pl-8 pr-2.5 focus:outline-none focus:ring-2 focus:ring-accent"
           />
         </div>
       </div>
 
       {/* Listado denso */}
-      <div className="rounded-xl border border-slate-800 bg-[#0d1425] overflow-hidden">
+      <div className="rounded-panel border border-border bg-surface overflow-hidden">
         <div className="overflow-x-auto">
           {isLoading ? (
-            <div className="p-8 text-center text-slate-500 text-xs">Cargando clientes...</div>
+            <div className="p-6 text-center text-text-muted text-[13px]">Cargando clientes...</div>
           ) : filtered.length === 0 ? (
-            <div className="p-8 text-center text-xs text-slate-400">No se encontraron clientes registrados.</div>
+            <div className="p-6 text-center text-[13px] text-text-muted">No se encontraron clientes registrados.</div>
           ) : (
-            <table className="w-full text-left text-xs border-collapse">
+            <table className="w-full text-left text-[13px] border-collapse">
               <thead>
-                <tr className="border-b border-slate-800 bg-slate-900/50 text-slate-400 text-[11px] font-medium">
-                  <th className="py-2.5 px-3">ID</th>
-                  <th className="py-2.5 px-3">NIT</th>
-                  <th className="py-2.5 px-3">Nombre</th>
-                  <th className="py-2.5 px-3">Dirección</th>
-                  <th className="py-2.5 px-3">Teléfono</th>
-                  <th className="py-2.5 px-3 text-right">Acciones</th>
+                <tr className="border-b border-border text-text-muted text-[12px] font-medium">
+                  <th className="py-2 px-3 font-medium">ID</th>
+                  <th className="py-2 px-3 font-medium">NIT</th>
+                  <th className="py-2 px-3 font-medium">Nombre</th>
+                  <th className="py-2 px-3 font-medium">Dirección</th>
+                  <th className="py-2 px-3 font-medium">Teléfono</th>
+                  <th className="py-2 px-3 text-right font-medium">Acciones</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/60">
+              <tbody className="divide-y divide-border">
                 {filtered.map((c) => (
-                  <tr key={c.id} className="hover:bg-slate-900/40 transition-colors">
-                    <td className="py-2 px-3 font-mono text-slate-400">#{c.id}</td>
-                    <td className="py-2 px-3 font-mono text-slate-200">{c.nit}</td>
-                    <td className="py-2 px-3 text-slate-100 font-medium">{c.nombre}</td>
-                    <td className="py-2 px-3 text-slate-300 truncate max-w-[200px]">{c.direccion}</td>
-                    <td className="py-2 px-3 text-slate-400 font-mono">{c.telefono}</td>
+                  <tr key={c.id} className="hover:bg-surface-hover transition-colors h-10">
+                    <td className="py-2 px-3 text-text-muted tabular-nums">#{c.id}</td>
+                    <td className="py-2 px-3 text-text tabular-nums">{c.nit}</td>
+                    <td className="py-2 px-3 text-text font-medium">{c.nombre}</td>
+                    <td className="py-2 px-3 text-text-muted truncate max-w-[200px]">{c.direccion}</td>
+                    <td className="py-2 px-3 text-text-muted tabular-nums">{c.telefono}</td>
                     <td className="py-2 px-3 text-right">
                       <div className="flex items-center justify-end gap-1">
                         <button
                           onClick={() => openEdit(c)}
-                          className="p-1 text-slate-400 hover:text-slate-200 hover:bg-slate-800 rounded transition-colors cursor-pointer"
+                          className="p-1 text-text-muted hover:text-text hover:bg-surface-hover rounded transition-colors cursor-pointer"
                           title="Editar"
                         >
                           <Edit2 className="w-3.5 h-3.5" />
                         </button>
                         <button
                           onClick={() => handleDelete(c.id, c.nombre)}
-                          className="p-1 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded transition-colors cursor-pointer"
+                          className="p-1 text-text-muted hover:text-danger hover:bg-danger/10 rounded transition-colors cursor-pointer"
                           title="Eliminar"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -169,11 +164,11 @@ export function ClientesPage() {
         </div>
       </div>
 
-      {/* Formulario en modal de hasta 720px */}
+      {/* Formulario modal hasta 720px */}
       <Modal
         isOpen={isModalOpen}
         onClose={closeModal}
-        title={editingItem ? "Editar Cliente" : "Nuevo Cliente"}
+        title={editingItem ? "Editar cliente" : "Nuevo cliente"}
         description="Datos del cliente individual o corporativo."
         maxWidth="720"
       >
@@ -219,12 +214,12 @@ export function ClientesPage() {
             required
           />
 
-          <div className="flex justify-end gap-2 pt-2">
+          <div className="flex justify-end gap-2 pt-2 border-t border-border">
             <Button type="button" variant="outline" size="sm" onClick={closeModal}>
               Cancelar
             </Button>
             <Button type="submit" variant="primary" size="sm" isLoading={saveMutation.isPending}>
-              Guardar
+              Guardar cliente
             </Button>
           </div>
         </form>

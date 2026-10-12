@@ -18,11 +18,7 @@ import {
   calcularPesoFacturable,
   calcularCostoEstimado,
 } from "@/lib/calculos";
-import {
-  Plus,
-  Search,
-  Printer,
-} from "lucide-react";
+import { Search, Printer } from "lucide-react";
 import { toast } from "sonner";
 import type { Guia } from "@/types";
 
@@ -95,27 +91,27 @@ export function GuiasPage() {
     onSuccess: (guiaCreada) => {
       queryClient.invalidateQueries({ queryKey: ["guias"] });
       queryClient.invalidateQueries({ queryKey: ["liquidacion"] });
-      toast.success(`Guía #${guiaCreada.numeroGuia} emitida exitosamente`);
+      toast.success(`Guía #${guiaCreada.numeroGuia} emitida`);
       setIsModalOpen(false);
       setCreatedGuiaModal(guiaCreada);
     },
     onError: (err: any) => {
-      toast.error(err.message || "Error al emitir la guía");
+      toast.error(err.message || "Error al emitir guía");
     },
   });
 
   const handleCrearGuia = (e: React.FormEvent) => {
     e.preventDefault();
     if (!idRemitente || !idDestinatario || !idRuta) {
-      toast.error("Por favor complete los campos obligatorios");
+      toast.error("Complete los campos obligatorios");
       return;
     }
     if (idRemitente === idDestinatario) {
-      toast.error("El cliente remitente no puede ser igual al destinatario");
+      toast.error("El remitente no puede ser igual al destinatario");
       return;
     }
     if (pesoReal <= 0 || largo <= 0 || ancho <= 0 || alto <= 0) {
-      toast.error("Las dimensiones y el peso deben ser mayores a cero");
+      toast.error("Las dimensiones y peso deben ser mayores a cero");
       return;
     }
 
@@ -145,50 +141,46 @@ export function GuiasPage() {
   }, [guias, searchTerm, filterEstado, clientesMap]);
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       {/* Cabecera */}
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-semibold text-slate-100">Emisión de Guías</h1>
-          <p className="text-xs text-slate-400 mt-0.5">
-            Registro, cubicaje y emisión de guías de envío
-          </p>
-        </div>
+        <h1 className="text-[20px] font-semibold text-text">Emisión de guías</h1>
         <Button
           variant="primary"
           size="sm"
           onClick={() => {
             if (clientes.length < 2) {
-              toast.error("Debe tener al menos 2 clientes registrados para emitir guías");
+              toast.error("Debe registrar al menos 2 clientes para emitir guías");
+              return;
             }
             if (rutas.length === 0) {
               toast.error("Debe registrar al menos una ruta de distribución");
+              return;
             }
             setIsModalOpen(true);
           }}
-          leftIcon={<Plus className="w-3.5 h-3.5" />}
         >
           Nueva guía
         </Button>
       </div>
 
       {/* Barra de herramientas */}
-      <div className="rounded-xl border border-slate-800 bg-[#0d1425] p-3 flex flex-col sm:flex-row items-center gap-2.5">
+      <div className="rounded-panel border border-border bg-surface p-3 flex flex-col sm:flex-row items-center gap-2">
         <div className="relative flex-1 w-full">
-          <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+          <Search className="w-3.5 h-3.5 text-text-muted absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
           <input
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Buscar por número o cliente..."
-            className="w-full bg-slate-900 text-slate-100 text-xs rounded-lg border border-slate-750 pl-8 pr-3 py-1.5 focus:outline-none focus:border-amber-500 font-mono"
+            placeholder="Buscar por número o cliente"
+            className="w-full h-8 bg-surface text-text text-[13px] rounded-control border border-border-input pl-8 pr-2.5 focus:outline-none focus:ring-2 focus:ring-accent"
           />
         </div>
         <div className="w-full sm:w-auto">
           <select
             value={filterEstado}
             onChange={(e) => setFilterEstado(e.target.value)}
-            className="w-full sm:w-44 bg-slate-900 text-slate-200 text-xs rounded-lg border border-slate-750 px-3 py-1.5 focus:outline-none focus:border-amber-500 cursor-pointer"
+            className="w-full sm:w-40 h-8 bg-surface text-text text-[13px] rounded-control border border-border-input px-2.5 focus:outline-none focus:ring-2 focus:ring-accent cursor-pointer"
           >
             <option value="TODOS">Todos los estados</option>
             <option value="Creada">En bodega</option>
@@ -199,56 +191,58 @@ export function GuiasPage() {
       </div>
 
       {/* Listado denso */}
-      <div className="rounded-xl border border-slate-800 bg-[#0d1425] overflow-hidden">
+      <div className="rounded-panel border border-border bg-surface overflow-hidden">
         <div className="overflow-x-auto">
           {loadingGuias ? (
-            <div className="p-8 text-center text-slate-500 text-xs">Cargando guías...</div>
+            <div className="p-6 text-center text-text-muted text-[13px]">Cargando guías...</div>
           ) : filteredGuias.length === 0 ? (
-            <div className="p-8 text-center text-xs text-slate-400">
+            <div className="p-6 text-center text-[13px] text-text-muted">
               No hay guías registradas que coincidan con la búsqueda.
             </div>
           ) : (
-            <table className="w-full text-left text-xs border-collapse">
+            <table className="w-full text-left text-[13px] border-collapse">
               <thead>
-                <tr className="border-b border-slate-800 bg-slate-900/50 text-slate-400 text-[11px] font-medium">
-                  <th className="py-2.5 px-3">No. guía</th>
-                  <th className="py-2.5 px-3">Remitente</th>
-                  <th className="py-2.5 px-3">Destinatario</th>
-                  <th className="py-2.5 px-3">Ruta</th>
-                  <th className="py-2.5 px-3">Medidas</th>
-                  <th className="py-2.5 px-3">Peso fact.</th>
-                  <th className="py-2.5 px-3">Costo</th>
-                  <th className="py-2.5 px-3">Estado</th>
-                  <th className="py-2.5 px-3 text-right">Acción</th>
+                <tr className="border-b border-border text-text-muted text-[12px] font-medium">
+                  <th className="py-2 px-3 font-medium">No. guía</th>
+                  <th className="py-2 px-3 font-medium">Remitente</th>
+                  <th className="py-2 px-3 font-medium">Destinatario</th>
+                  <th className="py-2 px-3 font-medium">Ruta</th>
+                  <th className="py-2 px-3 font-medium">Medidas (cm)</th>
+                  <th className="py-2 px-3 text-right font-medium">Peso (kg)</th>
+                  <th className="py-2 px-3 text-right font-medium">Costo</th>
+                  <th className="py-2 px-3 font-medium">Estado</th>
+                  <th className="py-2 px-3 text-right font-medium">Acción</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/60">
+              <tbody className="divide-y divide-border">
                 {filteredGuias.map((g) => {
                   const rutaObj = rutas.find((r) => r.id === g.idRuta);
                   const origName = rutaObj ? sucursalesMap.get(rutaObj.idSucursalOrigen) : `Suc ${g.idRuta}`;
                   const destName = rutaObj ? sucursalesMap.get(rutaObj.idSucursalDestino) : `Dest`;
 
                   return (
-                    <tr key={g.numeroGuia} className="hover:bg-slate-900/40 transition-colors">
-                      <td className="py-2 px-3 font-mono font-medium text-slate-200">
-                        {g.numeroGuia}
+                    <tr key={g.numeroGuia} className="hover:bg-surface-hover transition-colors h-10">
+                      <td className="py-2 px-3">
+                        <Link to={`/rastreo?no=${g.numeroGuia}`} className="text-text hover:underline tabular-nums">
+                          {g.numeroGuia}
+                        </Link>
                       </td>
-                      <td className="py-2 px-3 text-slate-200 truncate max-w-[140px]">
+                      <td className="py-2 px-3 text-text truncate max-w-[130px]">
                         {clientesMap.get(g.idClienteRemitente) || `Cliente #${g.idClienteRemitente}`}
                       </td>
-                      <td className="py-2 px-3 text-slate-200 truncate max-w-[140px]">
+                      <td className="py-2 px-3 text-text truncate max-w-[130px]">
                         {clientesMap.get(g.idClienteDestinatario) || `Cliente #${g.idClienteDestinatario}`}
                       </td>
-                      <td className="py-2 px-3 text-slate-400 text-[11px]">
+                      <td className="py-2 px-3 text-text-muted text-[12px]">
                         {origName} → {destName}
                       </td>
-                      <td className="py-2 px-3 text-slate-400 font-mono text-[11px]">
+                      <td className="py-2 px-3 text-text-muted tabular-nums">
                         {g.largoCm}×{g.anchoCm}×{g.altoCm}
                       </td>
-                      <td className="py-2 px-3 text-slate-300 tabular-nums">
+                      <td className="py-2 px-3 text-right text-text tabular-nums">
                         {formatWeight(g.pesoFacturableKg)}
                       </td>
-                      <td className="py-2 px-3 text-slate-300 tabular-nums font-medium">
+                      <td className="py-2 px-3 text-right text-text tabular-nums font-medium">
                         {formatCurrency(g.costoTotal)}
                       </td>
                       <td className="py-2 px-3">
@@ -258,14 +252,14 @@ export function GuiasPage() {
                         <div className="flex items-center justify-end gap-2">
                           <Link
                             to={`/rastreo?no=${g.numeroGuia}`}
-                            className="text-xs text-amber-500 hover:text-amber-400 transition-colors font-medium"
+                            className="text-accent hover:underline text-[13px]"
                           >
                             Rastrear
                           </Link>
                           <button
                             onClick={() => setCreatedGuiaModal(g)}
                             title="Imprimir comprobante"
-                            className="p-1 rounded text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors cursor-pointer"
+                            className="p-1 rounded text-text-muted hover:text-text hover:bg-surface-hover transition-colors cursor-pointer"
                           >
                             <Printer className="w-3.5 h-3.5" />
                           </button>
@@ -280,15 +274,15 @@ export function GuiasPage() {
         </div>
       </div>
 
-      {/* Formulario de emisión (Modal hasta 720px) */}
+      {/* Formulario de emisión en modal acotado a 720px */}
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title="Emisión de Guía de Envío"
+        title="Nueva guía de envío"
         description="Capture remitente, destinatario y medidas físicas del envío."
         maxWidth="720"
       >
-        <form onSubmit={handleCrearGuia} className="space-y-4">
+        <form onSubmit={handleCrearGuia} className="space-y-3">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <Select
               label="Cliente remitente"
@@ -349,10 +343,9 @@ export function GuiasPage() {
             </Select>
           </div>
 
-          {/* Dimensiones y cubicaje */}
-          <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-3 space-y-3">
-            <span className="text-xs font-medium text-slate-300 block">Medidas físicas del paquete</span>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+          <div className="pt-2 border-t border-border space-y-2">
+            <span className="text-[13px] font-medium text-text block">Dimensiones del paquete</span>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               <Input
                 label="Largo (cm)"
                 type="number"
@@ -391,21 +384,20 @@ export function GuiasPage() {
               />
             </div>
 
-            {/* Resumen de cálculo en tiempo real */}
-            <div className="pt-2 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-400 tabular-nums">
+            <div className="pt-2 flex flex-wrap items-center justify-between gap-2 text-[12px] text-text-muted tabular-nums">
               <div>
-                Volumen: <span className="text-slate-200">{liveVolumenM3.toFixed(4)} m³</span> · Volumétrico: <span className="text-slate-200">{livePesoVolumetrico.toFixed(2)} kg</span>
+                Volumen: <span className="text-text">{liveVolumenM3.toFixed(4)} m³</span> · Volumétrico: <span className="text-text">{livePesoVolumetrico.toFixed(2)} kg</span>
               </div>
               <div>
-                Peso facturable: <span className="font-medium text-slate-200">{livePesoFacturable.toFixed(2)} kg</span>
+                Peso facturable: <span className="text-text font-medium">{livePesoFacturable.toFixed(2)} kg</span>
               </div>
               <div>
-                Costo estimado: <span className="font-semibold text-amber-500">{formatCurrency(liveCostoEstimado)}</span>
+                Costo estimado: <span className="text-accent font-semibold">{formatCurrency(liveCostoEstimado)}</span>
               </div>
             </div>
           </div>
 
-          <div className="flex justify-end gap-2 pt-2">
+          <div className="flex justify-end gap-2 pt-3 border-t border-border">
             <Button
               type="button"
               variant="outline"
@@ -420,49 +412,49 @@ export function GuiasPage() {
               size="sm"
               isLoading={createMutation.isPending}
             >
-              Emitir guía
+              Guardar guía
             </Button>
           </div>
         </form>
       </Modal>
 
-      {/* Modal de Comprobante / Etiqueta generada */}
+      {/* Modal de Comprobante */}
       {createdGuiaModal && (
         <Modal
           isOpen={true}
           onClose={() => setCreatedGuiaModal(null)}
-          title={`Comprobante de Guía #${createdGuiaModal.numeroGuia}`}
+          title={`Comprobante de guía #${createdGuiaModal.numeroGuia}`}
           description="Comprobante generado listo para impresión."
           maxWidth="720"
         >
-          <div className="space-y-4 text-xs font-mono">
-            <div className="p-4 rounded-lg border border-slate-700 bg-slate-900/80 space-y-2 text-slate-200">
-              <div className="flex justify-between border-b border-slate-800 pb-2">
-                <span className="font-bold text-amber-500">UMG Express</span>
+          <div className="space-y-3 text-[13px]">
+            <div className="p-3 rounded-panel border border-border bg-surface space-y-2 text-text">
+              <div className="flex justify-between border-b border-border pb-1.5 font-medium">
+                <span>UMG Express</span>
                 <span>Guía #{createdGuiaModal.numeroGuia}</span>
               </div>
-              <div className="grid grid-cols-2 gap-2 text-[11px]">
+              <div className="grid grid-cols-2 gap-2 text-[12px]">
                 <div>
-                  <span className="text-slate-400 block">Remitente:</span>
+                  <span className="text-text-muted block">Remitente:</span>
                   <span>{clientesMap.get(createdGuiaModal.idClienteRemitente) || `#${createdGuiaModal.idClienteRemitente}`}</span>
                 </div>
                 <div>
-                  <span className="text-slate-400 block">Destinatario:</span>
+                  <span className="text-text-muted block">Destinatario:</span>
                   <span>{clientesMap.get(createdGuiaModal.idClienteDestinatario) || `#${createdGuiaModal.idClienteDestinatario}`}</span>
                 </div>
               </div>
-              <div className="pt-2 border-t border-slate-800 grid grid-cols-3 gap-2 text-[11px] tabular-nums">
+              <div className="pt-2 border-t border-border grid grid-cols-3 gap-2 text-[12px] tabular-nums">
                 <div>
-                  <span className="text-slate-400 block">Peso facturable:</span>
+                  <span className="text-text-muted block">Peso facturable:</span>
                   <span>{formatWeight(createdGuiaModal.pesoFacturableKg)}</span>
                 </div>
                 <div>
-                  <span className="text-slate-400 block">Dimensiones:</span>
+                  <span className="text-text-muted block">Medidas:</span>
                   <span>{createdGuiaModal.largoCm}×{createdGuiaModal.anchoCm}×{createdGuiaModal.altoCm} cm</span>
                 </div>
                 <div>
-                  <span className="text-slate-400 block">Total flete:</span>
-                  <span className="font-bold text-slate-100">{formatCurrency(createdGuiaModal.costoTotal)}</span>
+                  <span className="text-text-muted block">Total flete:</span>
+                  <span className="font-semibold text-text">{formatCurrency(createdGuiaModal.costoTotal)}</span>
                 </div>
               </div>
             </div>
@@ -479,7 +471,6 @@ export function GuiasPage() {
                 variant="primary"
                 size="sm"
                 onClick={() => window.print()}
-                leftIcon={<Printer className="w-3.5 h-3.5" />}
               >
                 Imprimir comprobante
               </Button>

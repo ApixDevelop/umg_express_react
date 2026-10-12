@@ -9,7 +9,6 @@ import { CapacityBar } from "@/components/ui/CapacityBar";
 import { formatCurrency, formatWeight, formatVolume } from "@/lib/utils";
 import { calcularVolumenM3 } from "@/lib/calculos";
 import { toast } from "sonner";
-import type { Guia } from "@/types";
 
 export function DespachoPage() {
   const queryClient = useQueryClient();
@@ -18,13 +17,12 @@ export function DespachoPage() {
   const [selectedGuias, setSelectedGuias] = useState<number[]>([]);
   const [activeTab, setActiveTab] = useState<"nuevo" | "historial">("nuevo");
 
-  // Load data
   const { data: guias = [], isLoading: loadingGuias } = useQuery({
     queryKey: ["guias"],
     queryFn: () => guiasApi.listar(),
   });
 
-  const { data: vehiculos = [], isLoading: loadingVehiculos } = useQuery({
+  const { data: vehiculos = [] } = useQuery({
     queryKey: ["vehiculos"],
     queryFn: () => vehiculosApi.listar(),
   });
@@ -48,17 +46,14 @@ export function DespachoPage() {
     return new Map(clientes.map((c) => [c.id, c.nombre]));
   }, [clientes]);
 
-  // Guides available for dispatch (Status === 'Creada')
   const guiasDisponibles = useMemo(() => {
     return guias.filter((g) => g.estado === "Creada");
   }, [guias]);
 
-  // Selected vehicle object
   const selectedVehiculo = useMemo(() => {
     return vehiculos.find((v) => v.id === Number(selectedVehiculoId));
   }, [vehiculos, selectedVehiculoId]);
 
-  // Calculations for selected guides
   const { totalPesoKg, totalVolumenM3 } = useMemo(() => {
     let peso = 0;
     let vol = 0;
@@ -75,7 +70,6 @@ export function DespachoPage() {
     };
   }, [selectedGuias, guias]);
 
-  // Over capacity flags
   const isOverWeight = selectedVehiculo ? totalPesoKg > selectedVehiculo.capacidadPesoKg : false;
   const isOverVolume = selectedVehiculo ? totalVolumenM3 > selectedVehiculo.capacidadVolumenM3 : false;
   const isVehicleInTaller = selectedVehiculo?.estado === "En taller";
@@ -100,7 +94,6 @@ export function DespachoPage() {
     }
   };
 
-  // Dispatch mutation
   const dispatchMutation = useMutation({
     mutationFn: (payload: ProcesarDespachoPayload) => despachoApi.procesar(payload),
     onSuccess: (resultado) => {
@@ -108,16 +101,14 @@ export function DespachoPage() {
       queryClient.invalidateQueries({ queryKey: ["vehiculos"] });
       queryClient.invalidateQueries({ queryKey: ["despachos"] });
       queryClient.invalidateQueries({ queryKey: ["liquidacion"] });
-      toast.success(
-        `Despacho procesado: ${resultado.totalGuias} guías asignadas al vehículo`
-      );
+      toast.success(`Despacho procesado: ${resultado.totalGuias} guías asignadas`);
       setSelectedGuias([]);
       setSelectedVehiculoId(0);
       setSelectedPilotoId(0);
       setActiveTab("historial");
     },
     onError: (err: any) => {
-      toast.error(err.message || "Error al procesar el despacho");
+      toast.error(err.message || "Error al procesar despacho");
     },
   });
 
@@ -136,7 +127,7 @@ export function DespachoPage() {
       return;
     }
     if (isOverWeight || isOverVolume) {
-      toast.error("La carga excede los límites físicos del vehículo");
+      toast.error("La carga excede la capacidad física del vehículo");
       return;
     }
 
@@ -148,34 +139,28 @@ export function DespachoPage() {
   };
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       {/* Cabecera */}
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-semibold text-slate-100">Asignación de Carga</h1>
-          <p className="text-xs text-slate-400 mt-0.5">
-            Asignación de guías en bodega a unidades de transporte y control de capacidad
-          </p>
-        </div>
+        <h1 className="text-[20px] font-semibold text-text">Asignación de carga</h1>
 
-        {/* Pestañas sobrias */}
-        <div className="flex items-center gap-1 p-0.5 bg-slate-900 border border-slate-800 rounded-lg text-xs">
+        <div className="flex items-center gap-1 border border-border rounded-panel p-0.5 bg-surface text-[12px]">
           <button
             onClick={() => setActiveTab("nuevo")}
-            className={`px-3 py-1 rounded-md transition-colors cursor-pointer ${
+            className={`px-2.5 py-1 rounded-control transition-colors cursor-pointer ${
               activeTab === "nuevo"
-                ? "bg-slate-800 text-slate-100 font-medium"
-                : "text-slate-400 hover:text-slate-200"
+                ? "bg-surface-hover text-text font-medium"
+                : "text-text-muted hover:text-text"
             }`}
           >
             Nuevo despacho
           </button>
           <button
             onClick={() => setActiveTab("historial")}
-            className={`px-3 py-1 rounded-md transition-colors cursor-pointer ${
+            className={`px-2.5 py-1 rounded-control transition-colors cursor-pointer ${
               activeTab === "historial"
-                ? "bg-slate-800 text-slate-100 font-medium"
-                : "text-slate-400 hover:text-slate-200"
+                ? "bg-surface-hover text-text font-medium"
+                : "text-text-muted hover:text-text"
             }`}
           >
             Historial ({despachos.length})
@@ -185,9 +170,9 @@ export function DespachoPage() {
 
       {activeTab === "nuevo" ? (
         <form onSubmit={handleSubmitDespacho} className="space-y-4">
-          {/* Configuración de transporte */}
-          <div className="rounded-xl border border-slate-800 bg-[#0d1425] p-4 space-y-3">
-            <h2 className="text-xs font-medium text-slate-300">Transporte y piloto</h2>
+          {/* Panel de configuración de transporte */}
+          <div className="rounded-panel border border-border bg-surface p-4 space-y-3">
+            <h2 className="text-[14px] font-semibold text-text">Transporte y piloto</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <Select
                 label="Vehículo asignado"
@@ -218,14 +203,13 @@ export function DespachoPage() {
             </div>
 
             {isVehicleInTaller && (
-              <p className="text-xs text-rose-400">
+              <p className="text-[12px] text-danger">
                 El vehículo seleccionado está en taller y no puede recibir carga.
               </p>
             )}
 
-            {/* Capacidad en tiempo real */}
             {selectedVehiculo && !isVehicleInTaller && (
-              <div className="pt-3 border-t border-slate-800/80 grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="pt-3 border-t border-border grid grid-cols-1 md:grid-cols-2 gap-4">
                 <CapacityBar
                   label="Capacidad de peso"
                   current={totalPesoKg}
@@ -242,20 +226,15 @@ export function DespachoPage() {
             )}
           </div>
 
-          {/* Tabla densa con selección de guías */}
-          <div className="rounded-xl border border-slate-800 bg-[#0d1425] overflow-hidden">
-            <div className="flex items-center justify-between px-4 py-3 border-b border-slate-800">
-              <div>
-                <h2 className="text-xs font-medium text-slate-300">Guías pendientes en bodega</h2>
-                <p className="text-[11px] text-slate-400 mt-0.5">
-                  Seleccione las guías que se cargarán en la unidad
-                </p>
-              </div>
+          {/* Tabla densa de selección de paquetes */}
+          <div className="rounded-panel border border-border bg-surface overflow-hidden">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+              <h2 className="text-[14px] font-semibold text-text">Guías pendientes en bodega</h2>
               {guiasDisponibles.length > 0 && (
                 <button
                   type="button"
                   onClick={handleSelectAll}
-                  className="text-xs text-slate-400 hover:text-slate-200 transition-colors font-medium cursor-pointer"
+                  className="text-[12px] text-text-muted hover:text-text cursor-pointer"
                 >
                   {selectedGuias.length === guiasDisponibles.length ? "Desmarcar todas" : "Seleccionar todas"}
                 </button>
@@ -264,32 +243,32 @@ export function DespachoPage() {
 
             <div className="overflow-x-auto">
               {loadingGuias ? (
-                <div className="p-8 text-center text-slate-500 text-xs">Cargando guías en bodega...</div>
+                <div className="p-6 text-center text-text-muted text-[13px]">Cargando guías en bodega...</div>
               ) : guiasDisponibles.length === 0 ? (
-                <div className="p-8 text-center text-xs text-slate-400">
+                <div className="p-6 text-center text-[13px] text-text-muted">
                   No hay guías pendientes en bodega para despachar.
                 </div>
               ) : (
-                <table className="w-full text-left text-xs border-collapse">
+                <table className="w-full text-left text-[13px] border-collapse">
                   <thead>
-                    <tr className="border-b border-slate-800 bg-slate-900/50 text-slate-400 text-[11px] font-medium">
-                      <th className="py-2.5 px-3 w-10 text-center">
+                    <tr className="border-b border-border text-text-muted text-[12px] font-medium">
+                      <th className="py-2 px-3 w-8 text-center">
                         <input
                           type="checkbox"
                           checked={selectedGuias.length === guiasDisponibles.length && guiasDisponibles.length > 0}
                           onChange={handleSelectAll}
-                          className="rounded border-slate-700 bg-slate-900 text-amber-500 focus:ring-0 cursor-pointer"
+                          className="rounded-control border-border-input bg-surface text-accent cursor-pointer"
                         />
                       </th>
-                      <th className="py-2.5 px-3">No. guía</th>
-                      <th className="py-2.5 px-3">Remitente</th>
-                      <th className="py-2.5 px-3">Destinatario</th>
-                      <th className="py-2.5 px-3">Peso fact.</th>
-                      <th className="py-2.5 px-3">Volumen m³</th>
-                      <th className="py-2.5 px-3 text-right">Costo</th>
+                      <th className="py-2 px-3 font-medium">No. guía</th>
+                      <th className="py-2 px-3 font-medium">Remitente</th>
+                      <th className="py-2 px-3 font-medium">Destinatario</th>
+                      <th className="py-2 px-3 text-right font-medium">Peso (kg)</th>
+                      <th className="py-2 px-3 text-right font-medium">Volumen (m³)</th>
+                      <th className="py-2 px-3 text-right font-medium">Costo</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-800/60">
+                  <tbody className="divide-y divide-border">
                     {guiasDisponibles.map((g) => {
                       const isSelected = selectedGuias.includes(g.numeroGuia);
                       const volM3 = calcularVolumenM3(g.largoCm, g.anchoCm, g.altoCm);
@@ -298,8 +277,8 @@ export function DespachoPage() {
                         <tr
                           key={g.numeroGuia}
                           onClick={() => handleToggleGuia(g.numeroGuia)}
-                          className={`cursor-pointer transition-colors ${
-                            isSelected ? "bg-slate-800/50" : "hover:bg-slate-900/40"
+                          className={`cursor-pointer transition-colors h-10 ${
+                            isSelected ? "bg-surface-hover" : "hover:bg-surface-hover/50"
                           }`}
                         >
                           <td className="py-2 px-3 text-center" onClick={(e) => e.stopPropagation()}>
@@ -307,25 +286,25 @@ export function DespachoPage() {
                               type="checkbox"
                               checked={isSelected}
                               onChange={() => handleToggleGuia(g.numeroGuia)}
-                              className="rounded border-slate-700 bg-slate-900 text-amber-500 focus:ring-0 cursor-pointer"
+                              className="rounded-control border-border-input bg-surface text-accent cursor-pointer"
                             />
                           </td>
-                          <td className="py-2 px-3 font-mono font-medium text-slate-200">
+                          <td className="py-2 px-3 text-text tabular-nums">
                             {g.numeroGuia}
                           </td>
-                          <td className="py-2 px-3 text-slate-300 truncate max-w-[150px]">
+                          <td className="py-2 px-3 text-text truncate max-w-[140px]">
                             {clientesMap.get(g.idClienteRemitente) || `#${g.idClienteRemitente}`}
                           </td>
-                          <td className="py-2 px-3 text-slate-300 truncate max-w-[150px]">
+                          <td className="py-2 px-3 text-text truncate max-w-[140px]">
                             {clientesMap.get(g.idClienteDestinatario) || `#${g.idClienteDestinatario}`}
                           </td>
-                          <td className="py-2 px-3 text-slate-300 tabular-nums">
+                          <td className="py-2 px-3 text-right text-text tabular-nums">
                             {formatWeight(g.pesoFacturableKg)}
                           </td>
-                          <td className="py-2 px-3 text-slate-400 tabular-nums">
+                          <td className="py-2 px-3 text-right text-text-muted tabular-nums">
                             {volM3.toFixed(4)}
                           </td>
-                          <td className="py-2 px-3 text-right text-slate-300 tabular-nums">
+                          <td className="py-2 px-3 text-right text-text tabular-nums">
                             {formatCurrency(g.costoTotal)}
                           </td>
                         </tr>
@@ -336,12 +315,12 @@ export function DespachoPage() {
               )}
             </div>
 
-            {/* Acción primaria única al pie con resumen */}
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 border-t border-slate-800 bg-[#0b1120]">
-              <div className="text-xs text-slate-400 tabular-nums">
-                Selección: <span className="font-medium text-slate-200">{selectedGuias.length}</span> guías ·{" "}
-                <span className="font-medium text-slate-200">{formatWeight(totalPesoKg)}</span> ·{" "}
-                <span className="font-medium text-slate-200">{formatVolume(totalVolumenM3)}</span>
+            {/* Acción primaria única al pie */}
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 border-t border-border bg-surface">
+              <div className="text-[12px] text-text-muted tabular-nums">
+                Seleccionadas: <span className="text-text font-medium">{selectedGuias.length}</span> guías ·{" "}
+                <span className="text-text font-medium">{formatWeight(totalPesoKg)}</span> ·{" "}
+                <span className="text-text font-medium">{formatVolume(totalVolumenM3)}</span>
               </div>
 
               <Button
@@ -358,51 +337,51 @@ export function DespachoPage() {
         </form>
       ) : (
         /* Pestaña Historial */
-        <div className="rounded-xl border border-slate-800 bg-[#0d1425] overflow-hidden">
+        <div className="rounded-panel border border-border bg-surface overflow-hidden">
           <div className="overflow-x-auto">
             {loadingDespachos ? (
-              <div className="p-8 text-center text-slate-500 text-xs">Cargando despachos...</div>
+              <div className="p-6 text-center text-text-muted text-[13px]">Cargando historial...</div>
             ) : despachos.length === 0 ? (
-              <div className="p-8 text-center text-xs text-slate-400">
-                No hay despachos registrados en el historial.
+              <div className="p-6 text-center text-[13px] text-text-muted">
+                No hay registros de despachos.
               </div>
             ) : (
-              <table className="w-full text-left text-xs border-collapse">
+              <table className="w-full text-left text-[13px] border-collapse">
                 <thead>
-                  <tr className="border-b border-slate-800 bg-slate-900/50 text-slate-400 text-[11px] font-medium">
-                    <th className="py-2.5 px-3">ID</th>
-                    <th className="py-2.5 px-3">Vehículo</th>
-                    <th className="py-2.5 px-3">Piloto</th>
-                    <th className="py-2.5 px-3">No. guía</th>
-                    <th className="py-2.5 px-3">Peso</th>
-                    <th className="py-2.5 px-3">Volumen</th>
-                    <th className="py-2.5 px-3">Fecha</th>
+                  <tr className="border-b border-border text-text-muted text-[12px] font-medium">
+                    <th className="py-2 px-3 font-medium">ID</th>
+                    <th className="py-2 px-3 font-medium">Vehículo</th>
+                    <th className="py-2 px-3 font-medium">Piloto</th>
+                    <th className="py-2 px-3 font-medium">No. guía</th>
+                    <th className="py-2 px-3 text-right font-medium">Peso (kg)</th>
+                    <th className="py-2 px-3 text-right font-medium">Volumen (m³)</th>
+                    <th className="py-2 px-3 text-right font-medium">Fecha</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/60">
+                <tbody className="divide-y divide-border">
                   {despachos.slice().reverse().map((d) => {
                     const veh = vehiculos.find((v) => v.id === d.idVehiculo);
                     const pil = pilotos.find((p) => p.id === d.idPiloto);
 
                     return (
-                      <tr key={d.id} className="hover:bg-slate-900/40 transition-colors">
-                        <td className="py-2 px-3 text-slate-400 font-mono">#{d.id}</td>
-                        <td className="py-2 px-3 text-slate-200">
+                      <tr key={d.id} className="hover:bg-surface-hover transition-colors h-10">
+                        <td className="py-2 px-3 text-text-muted tabular-nums">#{d.id}</td>
+                        <td className="py-2 px-3 text-text">
                           {veh ? `${veh.placa} (${veh.marcaModelo})` : `Vehículo #${d.idVehiculo}`}
                         </td>
-                        <td className="py-2 px-3 text-slate-300">
+                        <td className="py-2 px-3 text-text-muted">
                           {pil ? pil.nombre : d.idPiloto ? `Piloto #${d.idPiloto}` : "Sin piloto"}
                         </td>
-                        <td className="py-2 px-3 text-slate-200 font-mono">
+                        <td className="py-2 px-3 text-text tabular-nums">
                           {d.numeroGuia}
                         </td>
-                        <td className="py-2 px-3 text-slate-300 tabular-nums">
+                        <td className="py-2 px-3 text-right text-text tabular-nums">
                           {formatWeight(d.pesoKg)}
                         </td>
-                        <td className="py-2 px-3 text-slate-400 tabular-nums">
+                        <td className="py-2 px-3 text-right text-text-muted tabular-nums">
                           {formatVolume(d.volumenM3)}
                         </td>
-                        <td className="py-2 px-3 text-slate-400 text-[11px]">
+                        <td className="py-2 px-3 text-right text-text-muted text-[12px]">
                           {d.fechaDespacho || "N/A"}
                         </td>
                       </tr>

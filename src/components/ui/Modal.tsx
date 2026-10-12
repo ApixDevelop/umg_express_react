@@ -49,30 +49,30 @@ export function Modal({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/60 transition-opacity animate-in fade-in duration-150"
+        className="fixed inset-0 bg-black/60 transition-opacity duration-150"
         onClick={onClose}
       />
 
       {/* Dialog content */}
       <div
         className={cn(
-          "relative w-full rounded-xl border border-slate-800 bg-[#0d1425] shadow-xl z-10 overflow-hidden animate-in zoom-in-95 duration-150",
+          "relative w-full rounded-panel border border-border bg-surface shadow-[0_4px_16px_rgba(0,0,0,0.25)] z-10 overflow-hidden",
           maxW
         )}
       >
-        <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-800 bg-[#0b1120]">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-surface">
           <div>
-            <h3 className="text-sm font-semibold text-slate-100">{title}</h3>
-            {description && <p className="text-xs text-slate-400 mt-0.5">{description}</p>}
+            <h3 className="text-[16px] font-semibold text-text">{title}</h3>
+            {description && <p className="text-[12px] text-text-muted mt-0.5">{description}</p>}
           </div>
           <button
             onClick={onClose}
-            className="p-1 rounded-md text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors cursor-pointer"
+            className="p-1 rounded text-text-muted hover:text-text hover:bg-surface-hover transition-colors cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
-        <div className="p-5 max-h-[80vh] overflow-y-auto">{children}</div>
+        <div className="p-4 max-h-[80vh] overflow-y-auto">{children}</div>
       </div>
     </div>
   );

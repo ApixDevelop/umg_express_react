@@ -4,7 +4,6 @@ import { reportesApi } from "@/api/reportes";
 import { Button } from "@/components/ui/Button";
 import { StatusBadge } from "@/components/ui/Badge";
 import { formatCurrency, formatWeight } from "@/lib/utils";
-import { Download, Printer } from "lucide-react";
 import { toast } from "sonner";
 
 export function LiquidacionPage() {
@@ -36,12 +35,12 @@ export function LiquidacionPage() {
   };
 
   if (isLoading) {
-    return <div className="p-12 text-center text-slate-500 text-xs">Calculando liquidación financiera...</div>;
+    return <div className="p-8 text-center text-text-muted text-[13px]">Calculando liquidación financiera...</div>;
   }
 
   if (isError) {
     return (
-      <div className="rounded-xl border border-slate-800 bg-[#0d1425] p-6 text-center text-xs text-rose-400">
+      <div className="rounded-panel border border-border bg-surface p-6 text-center text-[13px] text-danger">
         {(error as any)?.message || "Error al cargar reporte de liquidación financiera"}
       </div>
     );
@@ -55,7 +54,6 @@ export function LiquidacionPage() {
     desgloseGuias = [],
   } = data || ({} as any);
 
-  // Totals calculations for tables
   const totalGuiasSucursales = resumenPorSucursalOrigen.reduce((acc: number, s: any) => acc + (s.cantidadGuias || 0), 0);
   const totalFacturadoSucursales = resumenPorSucursalOrigen.reduce((acc: number, s: any) => acc + (s.importeTotal || 0), 0);
 
@@ -66,149 +64,140 @@ export function LiquidacionPage() {
   const totalFleteDesglose = desgloseGuias.reduce((acc: number, g: any) => acc + (g.costoTotal || 0), 0);
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
       {/* Cabecera */}
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-semibold text-slate-100">Liquidación Financiera</h1>
-          <p className="text-xs text-slate-400 mt-0.5">
-            Consolidado general de ingresos brutos y fletes por sucursal, ruta y estado
-          </p>
-        </div>
+        <h1 className="text-[20px] font-semibold text-text">Liquidación financiera</h1>
         <div className="flex items-center gap-2 no-print">
           <Button
-            variant="outline"
+            variant="secondary"
             size="sm"
             onClick={exportCSV}
-            leftIcon={<Download className="w-3.5 h-3.5" />}
-            className="text-xs"
           >
             Exportar CSV
           </Button>
           <Button
-            variant="outline"
+            variant="secondary"
             size="sm"
             onClick={() => window.print()}
-            leftIcon={<Printer className="w-3.5 h-3.5" />}
-            className="text-xs"
           >
             Imprimir
           </Button>
         </div>
       </div>
 
-      {/* Franja de KPI unificada (sober strip) */}
-      <div className="rounded-xl border border-slate-800 bg-[#0c1220] grid grid-cols-2 lg:grid-cols-4 divide-y lg:divide-y-0 lg:divide-x divide-slate-800">
+      {/* Franja unificada de métricas */}
+      <div className="rounded-panel border border-border bg-surface grid grid-cols-2 lg:grid-cols-4 divide-y lg:divide-y-0 lg:divide-x divide-border">
         <div className="p-4 space-y-1">
-          <p className="text-xs text-slate-400">Importe facturado</p>
-          <p className="text-xl font-semibold text-slate-100 tabular-nums">
+          <div className="text-[12px] text-text-muted">Importe facturado</div>
+          <div className="text-[24px] font-semibold text-text tabular-nums leading-none">
             {formatCurrency(resumenFinanciero?.importeTotalFacturado)}
-          </p>
-          <p className="text-[11px] text-slate-500">Cobro total registrado</p>
+          </div>
+          <div className="text-[12px] text-text-faint">total registrado</div>
         </div>
 
         <div className="p-4 space-y-1">
-          <p className="text-xs text-slate-400">Guías contabilizadas</p>
-          <p className="text-xl font-semibold text-slate-100 tabular-nums">
+          <div className="text-[12px] text-text-muted">Guías contabilizadas</div>
+          <div className="text-[24px] font-semibold text-text tabular-nums leading-none">
             {resumenFinanciero?.totalGuiasConsideradas ?? 0}
-          </p>
-          <p className="text-[11px] text-slate-500">Enviadas o activas</p>
+          </div>
+          <div className="text-[12px] text-text-faint">activas</div>
         </div>
 
         <div className="p-4 space-y-1">
-          <p className="text-xs text-slate-400">Guías inactivas</p>
-          <p className="text-xl font-semibold text-slate-100 tabular-nums">
+          <div className="text-[12px] text-text-muted">Guías inactivas</div>
+          <div className="text-[24px] font-semibold text-text tabular-nums leading-none">
             {resumenFinanciero?.totalGuiasInactivas ?? 0}
-          </p>
-          <p className="text-[11px] text-slate-500">Bajas lógicas</p>
+          </div>
+          <div className="text-[12px] text-text-faint">bajas lógicas</div>
         </div>
 
         <div className="p-4 space-y-1">
-          <p className="text-xs text-slate-400">Cobro confirmado</p>
-          <p className="text-xl font-semibold text-slate-100 tabular-nums">
+          <div className="text-[12px] text-text-muted">Cobro confirmado</div>
+          <div className="text-[24px] font-semibold text-text tabular-nums leading-none">
             {formatCurrency(resumenFinanciero?.cobradoConfirmado)}
-          </p>
-          <p className="text-[11px] text-slate-500">Entregadas</p>
+          </div>
+          <div className="text-[12px] text-text-faint">entregadas</div>
         </div>
       </div>
 
       {/* Pestañas sobrias */}
-      <div className="flex items-center gap-1 border-b border-slate-800 pb-2 text-xs no-print overflow-x-auto">
+      <div className="flex items-center gap-1 border-b border-border pb-2 text-[12px] no-print overflow-x-auto">
         <button
           onClick={() => setActiveTab("resumen")}
-          className={`px-3 py-1 rounded-md transition-colors cursor-pointer ${
-            activeTab === "resumen" ? "bg-slate-800 text-slate-100 font-medium" : "text-slate-400 hover:text-slate-200"
+          className={`px-2.5 py-1 rounded-control transition-colors cursor-pointer ${
+            activeTab === "resumen" ? "bg-surface-hover text-text font-medium" : "text-text-muted hover:text-text"
           }`}
         >
           Resumen
         </button>
         <button
           onClick={() => setActiveTab("sucursales")}
-          className={`px-3 py-1 rounded-md transition-colors cursor-pointer ${
-            activeTab === "sucursales" ? "bg-slate-800 text-slate-100 font-medium" : "text-slate-400 hover:text-slate-200"
+          className={`px-2.5 py-1 rounded-control transition-colors cursor-pointer ${
+            activeTab === "sucursales" ? "bg-surface-hover text-text font-medium" : "text-text-muted hover:text-text"
           }`}
         >
           Por sucursal ({resumenPorSucursalOrigen.length})
         </button>
         <button
           onClick={() => setActiveTab("rutas")}
-          className={`px-3 py-1 rounded-md transition-colors cursor-pointer ${
-            activeTab === "rutas" ? "bg-slate-800 text-slate-100 font-medium" : "text-slate-400 hover:text-slate-200"
+          className={`px-2.5 py-1 rounded-control transition-colors cursor-pointer ${
+            activeTab === "rutas" ? "bg-surface-hover text-text font-medium" : "text-text-muted hover:text-text"
           }`}
         >
           Por ruta ({resumenPorRuta.length})
         </button>
         <button
           onClick={() => setActiveTab("estados")}
-          className={`px-3 py-1 rounded-md transition-colors cursor-pointer ${
-            activeTab === "estados" ? "bg-slate-800 text-slate-100 font-medium" : "text-slate-400 hover:text-slate-200"
+          className={`px-2.5 py-1 rounded-control transition-colors cursor-pointer ${
+            activeTab === "estados" ? "bg-surface-hover text-text font-medium" : "text-text-muted hover:text-text"
           }`}
         >
           Por estado ({guiasPorEstado.length})
         </button>
         <button
           onClick={() => setActiveTab("detalle")}
-          className={`px-3 py-1 rounded-md transition-colors cursor-pointer ${
-            activeTab === "detalle" ? "bg-slate-800 text-slate-100 font-medium" : "text-slate-400 hover:text-slate-200"
+          className={`px-2.5 py-1 rounded-control transition-colors cursor-pointer ${
+            activeTab === "detalle" ? "bg-surface-hover text-text font-medium" : "text-text-muted hover:text-text"
           }`}
         >
-          Desglose de guías ({desgloseGuias.length})
+          Desglose ({desgloseGuias.length})
         </button>
       </div>
 
       {/* Tabla 1: Por Sucursal Origen */}
       {(activeTab === "resumen" || activeTab === "sucursales") && (
-        <div className="rounded-xl border border-slate-800 bg-[#0d1425] overflow-hidden">
-          <div className="px-4 py-3 border-b border-slate-800">
-            <h2 className="text-xs font-medium text-slate-200">Ingresos por sucursal de origen</h2>
+        <div className="rounded-panel border border-border bg-surface overflow-hidden">
+          <div className="px-4 py-3 border-b border-border">
+            <h2 className="text-[14px] font-semibold text-text">Ingresos por sucursal de origen</h2>
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs border-collapse">
+            <table className="w-full text-left text-[13px] border-collapse">
               <thead>
-                <tr className="border-b border-slate-800 bg-slate-900/50 text-slate-400 text-[11px] font-medium">
-                  <th className="py-2 px-3">ID</th>
-                  <th className="py-2 px-3">Sucursal de origen</th>
-                  <th className="py-2 px-3 text-right">Guías</th>
-                  <th className="py-2 px-3 text-right">Total facturado</th>
+                <tr className="border-b border-border text-text-muted text-[12px] font-medium">
+                  <th className="py-2 px-3 font-medium">ID</th>
+                  <th className="py-2 px-3 font-medium">Sucursal</th>
+                  <th className="py-2 px-3 text-right font-medium">Guías</th>
+                  <th className="py-2 px-3 text-right font-medium">Total facturado</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/60">
+              <tbody className="divide-y divide-border">
                 {resumenPorSucursalOrigen.map((s: any) => (
-                  <tr key={s.idSucursal} className="hover:bg-slate-900/40 transition-colors">
-                    <td className="py-2 px-3 text-slate-400 font-mono">#{s.idSucursal}</td>
-                    <td className="py-2 px-3 text-slate-200">{s.nombre}</td>
-                    <td className="py-2 px-3 text-right text-slate-300 tabular-nums">{s.cantidadGuias}</td>
-                    <td className="py-2 px-3 text-right text-slate-200 font-medium tabular-nums">
+                  <tr key={s.idSucursal} className="hover:bg-surface-hover transition-colors h-10">
+                    <td className="py-2 px-3 text-text-muted tabular-nums">#{s.idSucursal}</td>
+                    <td className="py-2 px-3 text-text">{s.nombre}</td>
+                    <td className="py-2 px-3 text-right text-text tabular-nums">{s.cantidadGuias}</td>
+                    <td className="py-2 px-3 text-right text-text font-medium tabular-nums">
                       {formatCurrency(s.importeTotal)}
                     </td>
                   </tr>
                 ))}
               </tbody>
-              <tfoot className="border-t-2 border-slate-800 bg-slate-900/70 text-slate-200 font-medium text-xs">
+              <tfoot className="border-t-2 border-border bg-surface-hover text-text font-medium text-[13px]">
                 <tr>
                   <td className="py-2 px-3" colSpan={2}>Total consolidado</td>
                   <td className="py-2 px-3 text-right tabular-nums">{totalGuiasSucursales}</td>
-                  <td className="py-2 px-3 text-right tabular-nums text-amber-500 font-semibold">
+                  <td className="py-2 px-3 text-right tabular-nums text-accent font-semibold">
                     {formatCurrency(totalFacturadoSucursales)}
                   </td>
                 </tr>
@@ -220,35 +209,35 @@ export function LiquidacionPage() {
 
       {/* Tabla 2: Por Ruta */}
       {(activeTab === "resumen" || activeTab === "rutas") && (
-        <div className="rounded-xl border border-slate-800 bg-[#0d1425] overflow-hidden">
-          <div className="px-4 py-3 border-b border-slate-800">
-            <h2 className="text-xs font-medium text-slate-200">Ingresos agrupados por ruta</h2>
+        <div className="rounded-panel border border-border bg-surface overflow-hidden">
+          <div className="px-4 py-3 border-b border-border">
+            <h2 className="text-[14px] font-semibold text-text">Ingresos agrupados por ruta</h2>
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs border-collapse">
+            <table className="w-full text-left text-[13px] border-collapse">
               <thead>
-                <tr className="border-b border-slate-800 bg-slate-900/50 text-slate-400 text-[11px] font-medium">
-                  <th className="py-2 px-3">Ruta</th>
-                  <th className="py-2 px-3 text-right">Guías</th>
-                  <th className="py-2 px-3 text-right">Total facturado</th>
+                <tr className="border-b border-border text-text-muted text-[12px] font-medium">
+                  <th className="py-2 px-3 font-medium">Ruta</th>
+                  <th className="py-2 px-3 text-right font-medium">Guías</th>
+                  <th className="py-2 px-3 text-right font-medium">Total facturado</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/60">
+              <tbody className="divide-y divide-border">
                 {resumenPorRuta.map((r: any) => (
-                  <tr key={r.idRuta} className="hover:bg-slate-900/40 transition-colors">
-                    <td className="py-2 px-3 text-slate-200 font-mono">Ruta #{r.idRuta}</td>
-                    <td className="py-2 px-3 text-right text-slate-300 tabular-nums">{r.cantidadGuias}</td>
-                    <td className="py-2 px-3 text-right text-slate-200 font-medium tabular-nums">
+                  <tr key={r.idRuta} className="hover:bg-surface-hover transition-colors h-10">
+                    <td className="py-2 px-3 text-text tabular-nums">Ruta #{r.idRuta}</td>
+                    <td className="py-2 px-3 text-right text-text tabular-nums">{r.cantidadGuias}</td>
+                    <td className="py-2 px-3 text-right text-text font-medium tabular-nums">
                       {formatCurrency(r.importeTotal)}
                     </td>
                   </tr>
                 ))}
               </tbody>
-              <tfoot className="border-t-2 border-slate-800 bg-slate-900/70 text-slate-200 font-medium text-xs">
+              <tfoot className="border-t-2 border-border bg-surface-hover text-text font-medium text-[13px]">
                 <tr>
                   <td className="py-2 px-3">Total consolidado</td>
                   <td className="py-2 px-3 text-right tabular-nums">{totalGuiasRutas}</td>
-                  <td className="py-2 px-3 text-right tabular-nums text-amber-500 font-semibold">
+                  <td className="py-2 px-3 text-right tabular-nums text-accent font-semibold">
                     {formatCurrency(totalFacturadoRutas)}
                   </td>
                 </tr>
@@ -260,25 +249,25 @@ export function LiquidacionPage() {
 
       {/* Tabla 3: Por Estado */}
       {activeTab === "estados" && (
-        <div className="rounded-xl border border-slate-800 bg-[#0d1425] overflow-hidden">
-          <div className="px-4 py-3 border-b border-slate-800">
-            <h2 className="text-xs font-medium text-slate-200">Distribución de guías por estado</h2>
+        <div className="rounded-panel border border-border bg-surface overflow-hidden">
+          <div className="px-4 py-3 border-b border-border">
+            <h2 className="text-[14px] font-semibold text-text">Distribución de guías por estado</h2>
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs border-collapse">
+            <table className="w-full text-left text-[13px] border-collapse">
               <thead>
-                <tr className="border-b border-slate-800 bg-slate-900/50 text-slate-400 text-[11px] font-medium">
-                  <th className="py-2 px-3">Estado</th>
-                  <th className="py-2 px-3 text-right">Cantidad de guías</th>
+                <tr className="border-b border-border text-text-muted text-[12px] font-medium">
+                  <th className="py-2 px-3 font-medium">Estado</th>
+                  <th className="py-2 px-3 text-right font-medium">Cantidad de guías</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/60">
+              <tbody className="divide-y divide-border">
                 {guiasPorEstado.map((e: any) => (
-                  <tr key={e.estado} className="hover:bg-slate-900/40 transition-colors">
+                  <tr key={e.estado} className="hover:bg-surface-hover transition-colors h-10">
                     <td className="py-2 px-3">
                       <StatusBadge status={e.estado} />
                     </td>
-                    <td className="py-2 px-3 text-right text-slate-200 font-medium tabular-nums">
+                    <td className="py-2 px-3 text-right text-text font-medium tabular-nums">
                       {e.cantidad}
                     </td>
                   </tr>
@@ -291,55 +280,55 @@ export function LiquidacionPage() {
 
       {/* Tabla 4: Desglose Individual de Guías */}
       {activeTab === "detalle" && (
-        <div className="rounded-xl border border-slate-800 bg-[#0d1425] overflow-hidden">
-          <div className="px-4 py-3 border-b border-slate-800">
-            <h2 className="text-xs font-medium text-slate-200">Desglose individual de guías auditadas</h2>
+        <div className="rounded-panel border border-border bg-surface overflow-hidden">
+          <div className="px-4 py-3 border-b border-border">
+            <h2 className="text-[14px] font-semibold text-text">Desglose individual de guías auditadas</h2>
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs border-collapse">
+            <table className="w-full text-left text-[13px] border-collapse">
               <thead>
-                <tr className="border-b border-slate-800 bg-slate-900/50 text-slate-400 text-[11px] font-medium">
-                  <th className="py-2 px-3">No. guía</th>
-                  <th className="py-2 px-3">Sucursal origen</th>
-                  <th className="py-2 px-3">Ruta</th>
-                  <th className="py-2 px-3">Estado</th>
-                  <th className="py-2 px-3 text-right">Peso fact.</th>
-                  <th className="py-2 px-3 text-right">Costo</th>
+                <tr className="border-b border-border text-text-muted text-[12px] font-medium">
+                  <th className="py-2 px-3 font-medium">No. guía</th>
+                  <th className="py-2 px-3 font-medium">Sucursal origen</th>
+                  <th className="py-2 px-3 font-medium">Ruta</th>
+                  <th className="py-2 px-3 font-medium">Estado</th>
+                  <th className="py-2 px-3 text-right font-medium">Peso (kg)</th>
+                  <th className="py-2 px-3 text-right font-medium">Costo</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/60">
+              <tbody className="divide-y divide-border">
                 {desgloseGuias.map((g: any) => (
-                  <tr key={g.numeroGuia} className="hover:bg-slate-900/40 transition-colors">
-                    <td className="py-2 px-3 text-slate-200 font-mono font-medium">
+                  <tr key={g.numeroGuia} className="hover:bg-surface-hover transition-colors h-10">
+                    <td className="py-2 px-3 text-text tabular-nums font-medium">
                       {g.numeroGuia}
                     </td>
-                    <td className="py-2 px-3 text-slate-300">
+                    <td className="py-2 px-3 text-text">
                       {g.sucursalOrigen || `Suc #${g.idRuta}`}
                     </td>
-                    <td className="py-2 px-3 text-slate-400 font-mono">
+                    <td className="py-2 px-3 text-text-muted tabular-nums">
                       Ruta #{g.idRuta}
                     </td>
                     <td className="py-2 px-3">
                       <StatusBadge status={g.estado} />
                     </td>
-                    <td className="py-2 px-3 text-right text-slate-300 tabular-nums">
+                    <td className="py-2 px-3 text-right text-text tabular-nums">
                       {formatWeight(g.pesoFacturableKg)}
                     </td>
-                    <td className="py-2 px-3 text-right text-slate-200 font-medium tabular-nums">
+                    <td className="py-2 px-3 text-right text-text font-medium tabular-nums">
                       {formatCurrency(g.costoTotal)}
                     </td>
                   </tr>
                 ))}
               </tbody>
-              <tfoot className="border-t-2 border-slate-800 bg-slate-900/70 text-slate-200 font-medium text-xs">
+              <tfoot className="border-t-2 border-border bg-surface-hover text-text font-medium text-[13px]">
                 <tr>
-                  <td className="py-2.5 px-3" colSpan={4}>
+                  <td className="py-2 px-3" colSpan={4}>
                     Total ({desgloseGuias.length} guías)
                   </td>
-                  <td className="py-2.5 px-3 text-right tabular-nums">
+                  <td className="py-2 px-3 text-right tabular-nums">
                     {formatWeight(totalPesoDesglose)}
                   </td>
-                  <td className="py-2.5 px-3 text-right tabular-nums text-amber-500 font-semibold">
+                  <td className="py-2 px-3 text-right tabular-nums text-accent font-semibold">
                     {formatCurrency(totalFleteDesglose)}
                   </td>
                 </tr>

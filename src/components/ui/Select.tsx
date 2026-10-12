@@ -15,9 +15,9 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
     return (
       <div className="w-full space-y-1">
         {label && (
-          <label htmlFor={selectId} className="block text-xs font-medium text-slate-300">
+          <label htmlFor={selectId} className="block text-[13px] font-medium text-text">
             {label}
-            {props.required && <span className="text-amber-500 ml-1">*</span>}
+            {props.required && <span className="text-accent ml-1">*</span>}
           </label>
         )}
         <div className="relative">
@@ -25,29 +25,29 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
             ref={ref}
             id={selectId}
             className={cn(
-              "w-full bg-slate-900/90 text-slate-100 text-xs rounded-lg border border-slate-750 px-3 py-2 transition-colors appearance-none cursor-pointer",
-              "focus:outline-none focus:border-amber-500",
-              error && "border-rose-500/80 focus:border-rose-500",
+              "w-full h-[34px] bg-surface text-text text-[13px] rounded-control border border-border-input px-3 transition-colors duration-150 appearance-none cursor-pointer",
+              "focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-1 focus:ring-offset-bg",
+              error && "border-danger focus:ring-danger",
               className
             )}
             {...props}
           >
             {options
               ? options.map((opt) => (
-                  <option key={opt.value} value={opt.value} disabled={opt.disabled} className="bg-slate-900 text-slate-100">
+                  <option key={opt.value} value={opt.value} disabled={opt.disabled} className="bg-surface text-text">
                     {opt.label}
                   </option>
                 ))
               : children}
           </select>
-          <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+          <div className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-text-muted">
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M19 9l-7 7-7-7" />
             </svg>
           </div>
         </div>
-        {error && <p className="text-[11px] text-rose-400 font-medium">{error}</p>}
-        {helperText && !error && <p className="text-[11px] text-slate-400">{helperText}</p>}
+        {error && <p className="text-[12px] text-danger">{error}</p>}
+        {helperText && !error && <p className="text-[12px] text-text-muted">{helperText}</p>}
       </div>
     );
   }

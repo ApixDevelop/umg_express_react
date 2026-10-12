@@ -7,11 +7,11 @@ export function AppLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-[#090d16] text-slate-100 flex">
+    <div className="min-h-screen bg-bg text-text flex">
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-      <div className="lg:pl-64 flex flex-col min-h-screen w-full">
-        <Topbar onToggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
-        <main className="flex-1 p-4 sm:p-6 max-w-7xl w-full mx-auto">
+      <div className="lg:pl-[232px] flex flex-col min-h-screen w-full">
+        <Topbar onOpenSidebar={() => setSidebarOpen(true)} />
+        <main className="flex-1 p-6 w-full">
           <Outlet />
         </main>
       </div>

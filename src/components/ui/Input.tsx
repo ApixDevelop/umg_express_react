@@ -16,14 +16,14 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
     return (
       <div className="w-full space-y-1">
         {label && (
-          <label htmlFor={inputId} className="block text-xs font-medium text-slate-300">
+          <label htmlFor={inputId} className="block text-[13px] font-medium text-text">
             {label}
-            {props.required && <span className="text-amber-500 ml-1">*</span>}
+            {props.required && <span className="text-accent ml-1">*</span>}
           </label>
         )}
         <div className="relative flex items-center">
           {leftIcon && (
-            <div className="absolute left-3 text-slate-400 pointer-events-none flex items-center">
+            <div className="absolute left-2.5 text-text-muted pointer-events-none flex items-center">
               {leftIcon}
             </div>
           )}
@@ -31,23 +31,23 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
             ref={ref}
             id={inputId}
             className={cn(
-              "w-full bg-slate-900/90 text-slate-100 placeholder-slate-500 text-xs rounded-lg border border-slate-750 px-3 py-2 transition-colors",
-              "focus:outline-none focus:border-amber-500",
-              leftIcon && "pl-9",
-              rightIcon && "pr-9",
-              error && "border-rose-500/80 focus:border-rose-500",
+              "w-full h-[34px] bg-surface text-text placeholder-text-muted text-[13px] rounded-control border border-border-input px-3 transition-colors duration-150",
+              "focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-1 focus:ring-offset-bg",
+              leftIcon && "pl-8",
+              rightIcon && "pr-8",
+              error && "border-danger focus:ring-danger",
               className
             )}
             {...props}
           />
           {rightIcon && (
-            <div className="absolute right-3 text-slate-400 flex items-center">
+            <div className="absolute right-2.5 text-text-muted flex items-center">
               {rightIcon}
             </div>
           )}
         </div>
-        {error && <p className="text-[11px] text-rose-400 font-medium">{error}</p>}
-        {helperText && !error && <p className="text-[11px] text-slate-400">{helperText}</p>}
+        {error && <p className="text-[12px] text-danger">{error}</p>}
+        {helperText && !error && <p className="text-[12px] text-text-muted">{helperText}</p>}
       </div>
     );
   }
