@@ -1,22 +1,10 @@
 ﻿import React, { useState, useEffect } from "react";
 import { useSearchParams } from "react-router";
 import { reportesApi } from "@/api/reportes";
-import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { StatusBadge } from "@/components/ui/Badge";
-import { formatCurrency, formatWeight, formatVolume } from "@/lib/utils";
-import {
-  Search,
-  Package,
-  Truck,
-  CheckCircle2,
-  Clock,
-  MapPin,
-  User,
-  Printer,
-  AlertCircle,
-  ArrowRight,
-} from "lucide-react";
+import { formatCurrency, formatWeight } from "@/lib/utils";
+import { Search, Printer } from "lucide-react";
 import { toast } from "sonner";
 import type { RastreoInfo } from "@/types";
 
@@ -59,21 +47,14 @@ export function RastreoPage() {
     fetchRastreo(Number(guiaNumber));
   };
 
-  // Determine timeline steps
-  const isCreada = data !== null;
-  const isDespachada = data?.despacho?.despachada || data?.estado === "Despachada" || data?.estado === "Entregada";
-  const isEntregada = data?.estado === "Entregada";
-
   return (
-    <div className="space-y-6 animate-in fade-in duration-200">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="space-y-6">
+      {/* Cabecera */}
+      <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-extrabold text-white font-heading">
-            Rastreo y Trazabilidad de Guía
-          </h2>
-          <p className="text-xs sm:text-sm text-slate-400 mt-1">
-            Consulte en tiempo real el estado físico, flete y despacho de cualquier envío.
+          <h1 className="text-xl font-semibold text-slate-100">Rastreo de Guía</h1>
+          <p className="text-xs text-slate-400 mt-0.5">
+            Consulta del estado físico y despacho del envío por número correlativo
           </p>
         </div>
         {data && (
@@ -81,286 +62,174 @@ export function RastreoPage() {
             variant="outline"
             size="sm"
             onClick={() => window.print()}
-            leftIcon={<Printer className="w-4 h-4" />}
-            className="no-print"
+            leftIcon={<Printer className="w-3.5 h-3.5" />}
+            className="no-print text-xs"
           >
-            Imprimir Hoja de Rastreo
+            Imprimir
           </Button>
         )}
       </div>
 
-      {/* Search Bar Card */}
-      <Card className="p-6 no-print">
-        <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-3">
+      {/* Buscador */}
+      <div className="rounded-xl border border-slate-800 bg-[#0d1425] p-4 no-print">
+        <form onSubmit={handleSearch} className="flex gap-2 max-w-xl">
           <div className="relative flex-1">
-            <Search className="w-5 h-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
               type="number"
               value={guiaNumber}
               onChange={(e) => setGuiaNumber(e.target.value)}
-              placeholder="Ingrese el número correlativo de guía (ej: 1001)..."
-              className="w-full bg-slate-950/80 text-slate-100 text-sm sm:text-base rounded-xl border border-slate-700/80 pl-11 pr-4 py-3 focus:outline-none focus:border-amber-500 font-mono tracking-wider font-semibold"
+              placeholder="Número de guía (ej: 1001)..."
+              className="w-full bg-slate-900 text-slate-100 text-xs rounded-lg border border-slate-750 pl-9 pr-3 py-2 focus:outline-none focus:border-amber-500 font-mono"
             />
           </div>
           <Button
             type="submit"
             variant="primary"
-            size="lg"
+            size="sm"
             isLoading={loading}
-            leftIcon={<Search className="w-4 h-4" />}
           >
-            Consultar Guía
+            Buscar
           </Button>
         </form>
-      </Card>
+      </div>
 
-      {/* Tracking results */}
+      {/* Resultado */}
       {data ? (
-        <div className="space-y-6">
-          {/* Status banner with timeline */}
-          <Card className="p-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-5 mb-6">
-              <div>
-                <span className="text-xs font-semibold text-slate-400 uppercase tracking-widest font-mono">
-                  Número de Guía
-                </span>
-                <h3 className="text-3xl font-black text-amber-400 font-mono">
-                  #{data.numeroGuia}
-                </h3>
-              </div>
+        <div className="space-y-4">
+          {/* Resumen principal */}
+          <div className="rounded-xl border border-slate-800 bg-[#0d1425] p-4">
+            <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-800/80">
               <div className="flex items-center gap-3">
-                <StatusBadge status={data.estado} />
-                <span className="text-xs font-mono text-slate-400 font-bold">
-                  Total: {formatCurrency(data.paquete.costoTotal)}
+                <span className="text-xs text-slate-400">Guía</span>
+                <span className="font-mono text-base font-semibold text-slate-100">
+                  #{data.numeroGuia}
                 </span>
+                <StatusBadge status={data.estado} />
+              </div>
+              <div className="text-xs text-slate-300 tabular-nums">
+                Costo total: <span className="font-medium text-slate-100">{formatCurrency(data.paquete.costoTotal)}</span>
               </div>
             </div>
 
-            {/* Visual Timeline */}
-            <div className="py-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 relative">
-                {/* Step 1 */}
-                <div
-                  className={`p-4 rounded-xl border transition-all ${
-                    isCreada
-                      ? "bg-slate-900/90 border-emerald-500/40 text-slate-100"
-                      : "bg-slate-950/40 border-slate-800 text-slate-500"
-                  }`}
-                >
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center font-bold">
-                      <CheckCircle2 className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-sm">1. Recepción en Bodega</h4>
-                      <p className="text-[10px] text-slate-400 font-mono">Guía Emitida y Cubicada</p>
-                    </div>
-                  </div>
-                  <p className="text-xs text-slate-300">
-                    El paquete fue registrado, medido y tarificado en la sucursal de origen.
+            {/* Lista simple de estados */}
+            <div className="pt-4">
+              <h2 className="text-xs font-medium text-slate-300 mb-3">Historial de estados</h2>
+              <ol className="relative border-l border-slate-800 ml-2 space-y-4 text-xs">
+                {/* 1. Bodega */}
+                <li className="ml-4">
+                  <div className="absolute -left-1.5 mt-1 h-3 w-3 rounded-full border border-slate-800 bg-emerald-500" />
+                  <p className="font-medium text-slate-200">En bodega</p>
+                  <p className="text-[11px] text-slate-400 mt-0.5">
+                    Guía emitida y cubicada ({data.paquete.largoCm}×{data.paquete.anchoCm}×{data.paquete.altoCm} cm, {formatWeight(data.paquete.pesoFacturableKg)})
                   </p>
-                </div>
+                </li>
 
-                {/* Step 2 */}
-                <div
-                  className={`p-4 rounded-xl border transition-all ${
-                    isDespachada
-                      ? "bg-slate-900/90 border-amber-500/40 text-slate-100"
-                      : "bg-slate-950/40 border-slate-800 text-slate-500"
-                  }`}
-                >
-                  <div className="flex items-center gap-3 mb-2">
-                    <div
-                      className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold ${
-                        isDespachada ? "bg-amber-500/10 text-amber-400" : "bg-slate-800 text-slate-500"
-                      }`}
-                    >
-                      <Truck className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-sm">2. Despacho / En Tránsito</h4>
-                      <p className="text-[10px] text-slate-400 font-mono">
-                        {isDespachada ? "Cargado en Vehículo" : "Pendiente de Despacho"}
-                      </p>
-                    </div>
-                  </div>
-                  <p className="text-xs text-slate-300">
+                {/* 2. Tránsito */}
+                <li className="ml-4">
+                  <div
+                    className={`absolute -left-1.5 mt-1 h-3 w-3 rounded-full border border-slate-800 ${
+                      data.despacho?.despachada || data.estado === "Despachada" || data.estado === "Entregada"
+                        ? "bg-amber-500"
+                        : "bg-slate-700"
+                    }`}
+                  />
+                  <p className="font-medium text-slate-200">En tránsito</p>
+                  <p className="text-[11px] text-slate-400 mt-0.5">
                     {data.despacho?.despachada
-                      ? `Despachado en unidad ${data.despacho.vehiculo?.placa || ""} el ${data.despacho.fechaDespacho || ""}`
-                      : "A la espera de asignación vehicular en la bodega de origen."}
+                      ? `Despachada en vehículo ${data.despacho.vehiculo?.placa || ""} (${data.despacho.vehiculo?.marcaModelo || ""})${data.despacho.piloto ? ` - Piloto: ${data.despacho.piloto.nombre}` : ""} - ${data.despacho.fechaDespacho || ""}`
+                      : "Pendiente de asignación vehicular"}
                   </p>
-                </div>
+                </li>
 
-                {/* Step 3 */}
-                <div
-                  className={`p-4 rounded-xl border transition-all ${
-                    isEntregada
-                      ? "bg-slate-900/90 border-emerald-500/40 text-slate-100"
-                      : "bg-slate-950/40 border-slate-800 text-slate-500"
-                  }`}
-                >
-                  <div className="flex items-center gap-3 mb-2">
-                    <div
-                      className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold ${
-                        isEntregada ? "bg-emerald-500/10 text-emerald-400" : "bg-slate-800 text-slate-500"
-                      }`}
-                    >
-                      <CheckCircle2 className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-sm">3. Entrega a Destinatario</h4>
-                      <p className="text-[10px] text-slate-400 font-mono">Destino Final</p>
-                    </div>
-                  </div>
-                  <p className="text-xs text-slate-300">
-                    {isEntregada ? "Entrega confirmada en destino." : "En proceso de tránsito y entrega."}
+                {/* 3. Entrega */}
+                <li className="ml-4">
+                  <div
+                    className={`absolute -left-1.5 mt-1 h-3 w-3 rounded-full border border-slate-800 ${
+                      data.estado === "Entregada" ? "bg-emerald-500" : "bg-slate-700"
+                    }`}
+                  />
+                  <p className="font-medium text-slate-200">Entregada</p>
+                  <p className="text-[11px] text-slate-400 mt-0.5">
+                    {data.estado === "Entregada"
+                      ? "Envío entregado al destinatario final"
+                      : "Pendiente de entrega"}
                   </p>
-                </div>
-              </div>
+                </li>
+              </ol>
             </div>
-          </Card>
-
-          {/* Details Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Sender and Receiver */}
-            <Card className="p-6 space-y-4">
-              <CardTitle>Participantes del Envío</CardTitle>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-mono">
-                <div className="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800 space-y-1">
-                  <span className="text-[10px] text-amber-500 font-bold uppercase tracking-wider block">
-                    Remitente
-                  </span>
-                  <p className="font-bold text-slate-100 text-sm">
-                    {data.remitente?.nombre || "N/A"}
-                  </p>
-                  <p className="text-slate-400">NIT: {data.remitente?.nit || "C/F"}</p>
-                  <p className="text-slate-400">Tel: {data.remitente?.telefono || "N/A"}</p>
-                  <p className="text-slate-400 text-[11px] truncate">{data.remitente?.direccion || ""}</p>
-                </div>
-
-                <div className="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800 space-y-1">
-                  <span className="text-[10px] text-indigo-400 font-bold uppercase tracking-wider block">
-                    Destinatario
-                  </span>
-                  <p className="font-bold text-slate-100 text-sm">
-                    {data.destinatario?.nombre || "N/A"}
-                  </p>
-                  <p className="text-slate-400">NIT: {data.destinatario?.nit || "C/F"}</p>
-                  <p className="text-slate-400">Tel: {data.destinatario?.telefono || "N/A"}</p>
-                  <p className="text-slate-400 text-[11px] truncate">{data.destinatario?.direccion || ""}</p>
-                </div>
-              </div>
-            </Card>
-
-            {/* Package Physics */}
-            <Card className="p-6 space-y-4">
-              <CardTitle>Cubicaje y Tarificación del Paquete</CardTitle>
-              <div className="grid grid-cols-2 gap-3 text-xs font-mono">
-                <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800">
-                  <span className="text-[10px] text-slate-400 block">Dimensiones</span>
-                  <span className="font-bold text-slate-200">
-                    {data.paquete.largoCm}×{data.paquete.anchoCm}×{data.paquete.altoCm} cm
-                  </span>
-                </div>
-                <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800">
-                  <span className="text-[10px] text-slate-400 block">Peso Real</span>
-                  <span className="font-bold text-slate-200">
-                    {formatWeight(data.paquete.pesoRealKg)}
-                  </span>
-                </div>
-                <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800">
-                  <span className="text-[10px] text-slate-400 block">Peso Volumétrico</span>
-                  <span className="font-bold text-amber-400">
-                    {formatWeight(data.paquete.pesoVolumetricoKg)}
-                  </span>
-                </div>
-                <div className="p-3 rounded-xl bg-slate-950/60 border border-amber-500/30">
-                  <span className="text-[10px] text-amber-400 block font-bold">Peso Facturable</span>
-                  <span className="font-extrabold text-amber-400 text-sm">
-                    {formatWeight(data.paquete.pesoFacturableKg)}
-                  </span>
-                </div>
-              </div>
-            </Card>
           </div>
 
-          {/* Route and Transport */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Route */}
-            <Card className="p-6 space-y-3">
-              <CardTitle>Ruta y Trayecto</CardTitle>
-              {data.ruta ? (
-                <div className="space-y-3 text-xs font-mono">
-                  <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800 flex items-center justify-between">
-                    <div>
-                      <span className="text-[10px] text-slate-500 block">ORIGEN</span>
-                      <strong className="text-slate-100">{data.ruta.origen?.nombre || "Agencia Origen"}</strong>
-                      <p className="text-[10px] text-slate-400">{data.ruta.origen?.direccion || ""}</p>
-                    </div>
-                    <ArrowRight className="w-5 h-5 text-amber-500" />
-                    <div className="text-right">
-                      <span className="text-[10px] text-slate-500 block">DESTINO</span>
-                      <strong className="text-slate-100">{data.ruta.destino?.nombre || "Agencia Destino"}</strong>
-                      <p className="text-[10px] text-slate-400">{data.ruta.destino?.direccion || ""}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between text-slate-400 text-[11px] px-1">
-                    <span>Distancia: <strong>{data.ruta.distanciaKm} km</strong></span>
-                    <span>Tarifa Base: <strong>{formatCurrency(data.ruta.tarifaBase)}</strong></span>
-                  </div>
+          {/* Datos del envío en 2 columnas */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+            {/* Remitente y Destinatario */}
+            <div className="rounded-xl border border-slate-800 bg-[#0d1425] p-4 space-y-3">
+              <h2 className="text-xs font-medium text-slate-300">Participantes</h2>
+              <div className="space-y-2">
+                <div className="p-2.5 rounded-lg border border-slate-800/80 bg-slate-900/60">
+                  <span className="text-[11px] text-slate-400 block">Remitente</span>
+                  <p className="font-medium text-slate-200">{data.remitente?.nombre || "N/A"}</p>
+                  <p className="text-slate-400 text-[11px]">NIT: {data.remitente?.nit || "C/F"} · Tel: {data.remitente?.telefono || "N/A"}</p>
+                  {data.remitente?.direccion && (
+                    <p className="text-slate-400 text-[11px] truncate">{data.remitente.direccion}</p>
+                  )}
                 </div>
-              ) : (
-                <p className="text-xs text-slate-500">Sin datos de ruta</p>
-              )}
-            </Card>
 
-            {/* Vehicle & Pilot Dispatch */}
-            <Card className="p-6 space-y-3">
-              <CardTitle>Asignación de Transporte</CardTitle>
-              {data.despacho?.despachada ? (
-                <div className="space-y-3 text-xs font-mono">
-                  <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800 space-y-1.5">
-                    <div className="flex items-center justify-between">
-                      <span className="text-slate-400">Unidad Vehicular:</span>
-                      <strong className="text-amber-400 font-bold">{data.despacho.vehiculo?.placa}</strong>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-slate-400">Modelo / Marca:</span>
-                      <span className="text-slate-200">{data.despacho.vehiculo?.marcaModelo}</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-slate-400">Piloto Asignado:</span>
-                      <span className="text-slate-200">{data.despacho.piloto?.nombre || "No especificado"}</span>
-                    </div>
-                    {data.despacho.piloto?.telefono && (
-                      <div className="flex items-center justify-between">
-                        <span className="text-slate-400">Contacto Piloto:</span>
-                        <span className="text-slate-200">{data.despacho.piloto.telefono}</span>
-                      </div>
-                    )}
-                    <div className="flex items-center justify-between pt-1 border-t border-slate-800 text-[11px]">
-                      <span className="text-slate-400">Fecha Despacho:</span>
-                      <span className="text-emerald-400 font-semibold">{data.despacho.fechaDespacho}</span>
-                    </div>
+                <div className="p-2.5 rounded-lg border border-slate-800/80 bg-slate-900/60">
+                  <span className="text-[11px] text-slate-400 block">Destinatario</span>
+                  <p className="font-medium text-slate-200">{data.destinatario?.nombre || "N/A"}</p>
+                  <p className="text-slate-400 text-[11px]">NIT: {data.destinatario?.nit || "C/F"} · Tel: {data.destinatario?.telefono || "N/A"}</p>
+                  {data.destinatario?.direccion && (
+                    <p className="text-slate-400 text-[11px] truncate">{data.destinatario.direccion}</p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Paquete y Trayecto */}
+            <div className="rounded-xl border border-slate-800 bg-[#0d1425] p-4 space-y-3">
+              <h2 className="text-xs font-medium text-slate-300">Detalles de carga y ruta</h2>
+              <div className="space-y-2">
+                <div className="p-2.5 rounded-lg border border-slate-800/80 bg-slate-900/60 space-y-1">
+                  <span className="text-[11px] text-slate-400 block">Carga física</span>
+                  <div className="flex items-center justify-between text-slate-300">
+                    <span>Dimensiones:</span>
+                    <span className="font-mono">{data.paquete.largoCm}×{data.paquete.anchoCm}×{data.paquete.altoCm} cm</span>
+                  </div>
+                  <div className="flex items-center justify-between text-slate-300 tabular-nums">
+                    <span>Peso real:</span>
+                    <span>{formatWeight(data.paquete.pesoRealKg)}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-slate-300 tabular-nums">
+                    <span>Peso volumétrico:</span>
+                    <span>{formatWeight(data.paquete.pesoVolumetricoKg)}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-slate-200 font-medium tabular-nums pt-1 border-t border-slate-800">
+                    <span>Peso facturable:</span>
+                    <span>{formatWeight(data.paquete.pesoFacturableKg)}</span>
                   </div>
                 </div>
-              ) : (
-                <div className="p-6 text-center text-slate-500 text-xs">
-                  <Clock className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                  <p>Guía en espera de asignación a vehículo de reparto.</p>
-                </div>
-              )}
-            </Card>
+
+                {data.ruta && (
+                  <div className="p-2.5 rounded-lg border border-slate-800/80 bg-slate-900/60">
+                    <span className="text-[11px] text-slate-400 block">Trayecto</span>
+                    <p className="font-medium text-slate-200">
+                      {data.ruta.origen?.nombre || "Origen"} → {data.ruta.destino?.nombre || "Destino"}
+                    </p>
+                    <p className="text-slate-400 text-[11px] tabular-nums">
+                      Distancia: {data.ruta.distanciaKm} km · Tarifa base: {formatCurrency(data.ruta.tarifaBase)}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       ) : searched && !loading ? (
-        <Card className="p-12 text-center space-y-3">
-          <AlertCircle className="w-12 h-12 text-slate-600 mx-auto" />
-          <h3 className="text-lg font-bold text-slate-200">Guía no encontrada</h3>
-          <p className="text-xs text-slate-400 max-w-sm mx-auto">
-            Verifique que el número de guía ingresado exista en el archivo de registros y se encuentre activo.
-          </p>
-        </Card>
+        <div className="rounded-xl border border-slate-800 bg-[#0d1425] p-8 text-center text-xs">
+          <p className="text-slate-300 font-medium">Guía no encontrada</p>
+          <p className="text-slate-500 mt-1">Verifique el número ingresado e intente de nuevo.</p>
+        </div>
       ) : null}
     </div>
   );
