@@ -43,7 +43,7 @@ export function Topbar({ onOpenSidebar }: TopbarProps) {
     : user?.username?.substring(0, 2).toUpperCase() || "US";
 
   return (
-    <header className="fixed top-0 right-0 left-0 lg:left-[232px] h-12 bg-bg border-b border-border z-30 flex items-center justify-between px-4 sm:px-6">
+    <header className="sticky top-0 h-12 bg-bg border-b border-border z-30 flex items-center justify-between px-4 sm:px-6 w-full shrink-0">
       {/* Left: Mobile toggle + Breadcrumb */}
       <div className="flex items-center gap-3">
         <button
@@ -72,7 +72,7 @@ export function Topbar({ onOpenSidebar }: TopbarProps) {
               value={quickSearch}
               onChange={(e) => setQuickSearch(e.target.value)}
               placeholder="Buscar guía por número"
-              className="w-48 lg:w-56 h-8 bg-surface text-text placeholder-text-muted text-xs rounded-control border border-border-input pl-8 pr-2.5 focus:outline-none focus:border-accent"
+              className="w-48 lg:w-56 h-8 bg-surface text-text placeholder-text-muted text-xs rounded-control border border-border-input pl-8 pr-2.5 focus:outline-none focus:ring-2 focus:ring-accent"
             />
           </div>
         </form>
