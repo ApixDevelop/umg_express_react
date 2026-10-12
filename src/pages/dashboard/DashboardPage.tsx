@@ -1,30 +1,16 @@
 ﻿import React from "react";
 import { Link } from "react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useAuthStore } from "@/store/authStore";
 import { guiasApi } from "@/api/guias";
 import { vehiculosApi } from "@/api/catalogos";
 import { reportesApi } from "@/api/reportes";
-import { StatCard } from "@/components/ui/StatCard";
-import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/Card";
-import { StatusBadge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
+import { StatusBadge } from "@/components/ui/Badge";
 import { formatCurrency, formatWeight } from "@/lib/utils";
-import {
-  Package,
-  Truck,
-  DollarSign,
-  Box,
-  PlusCircle,
-  Search,
-  ArrowRight,
-  TrendingUp,
-} from "lucide-react";
+import { Plus, Truck } from "lucide-react";
 import type { Guia, Vehiculo } from "@/types";
 
 export function DashboardPage() {
-  const { user } = useAuthStore();
-
   const { data: guias = [], isLoading: loadingGuias } = useQuery<Guia[]>({
     queryKey: ["guias"],
     queryFn: () => guiasApi.listar(),
@@ -53,196 +39,195 @@ export function DashboardPage() {
   const vehiculosDisponibles = vehiculos.filter((v: Vehiculo) => v.estado === "Disponible").length;
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-200">
-      {/* Welcome banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 rounded-3xl bg-gradient-to-r from-slate-900 via-slate-900/90 to-amber-950/20 border border-slate-800/80 shadow-2xl">
-        <div>
-          <span className="text-xs font-semibold uppercase tracking-wider text-amber-500 font-mono">
-            Centro de Operaciones
-          </span>
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-white font-heading mt-1">
-            Hola, {user?.nombre || user?.username} 👋
-          </h2>
-          <p className="text-xs sm:text-sm text-slate-400 mt-1 max-w-xl">
-            Control de envíos interdepartamentales, asignación de despachos y auditoría de carga UMG Express.
-          </p>
-        </div>
+    <div className="space-y-5 animate-in fade-in duration-150">
+      {/* Cabecera de página */}
+      <div className="flex items-center justify-between">
+        <h1 className="text-xl font-bold text-slate-100 font-heading">
+          Dashboard
+        </h1>
 
-        {/* Quick actions */}
-        <div className="flex flex-wrap items-center gap-2.5">
-          <Link to="/guias">
-            <Button variant="primary" size="md" leftIcon={<PlusCircle className="w-4 h-4" />}>
-              Nueva Guía
-            </Button>
-          </Link>
+        <div className="flex items-center gap-2">
           <Link to="/despacho">
-            <Button variant="secondary" size="md" leftIcon={<Truck className="w-4 h-4" />}>
+            <Button variant="secondary" size="md">
               Despachar
             </Button>
           </Link>
-          <Link to="/rastreo">
-            <Button variant="outline" size="md" leftIcon={<Search className="w-4 h-4" />}>
-              Rastrear
+          <Link to="/guias">
+            <Button variant="primary" size="md" leftIcon={<Plus className="w-4 h-4" />}>
+              Nueva guía
             </Button>
           </Link>
         </div>
       </div>
 
-      {/* KPI Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-        <StatCard
-          title="Total Guías Emitidas"
-          value={totalGuias}
-          subtitle={`${entregadas} entregadas`}
-          icon={<Package className="w-5 h-5 text-amber-500" />}
-          colorAccent="amber"
-        />
-        <StatCard
-          title="En Bodega (Pendientes)"
-          value={enBodega}
-          subtitle="Listas para despacho"
-          icon={<Box className="w-5 h-5 text-indigo-400" />}
-          colorAccent="indigo"
-        />
-        <StatCard
-          title="En Tránsito (Ruta)"
-          value={enTransito}
-          subtitle="Cargadas en vehículos"
-          icon={<Truck className="w-5 h-5 text-blue-400" />}
-          colorAccent="blue"
-        />
-        <StatCard
-          title="Total Facturado"
-          value={formatCurrency(totalFacturado)}
-          subtitle="Consolidado financiero"
-          icon={<DollarSign className="w-5 h-5 text-emerald-400" />}
-          colorAccent="emerald"
-        />
-      </div>
-
-      {/* Two-column layout: Recent Guides & Fleet Overview */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Recent Guides (Takes 2 cols) */}
-        <div className="lg:col-span-2">
-          <Card className="h-full flex flex-col">
-            <CardHeader>
-              <div>
-                <CardTitle>Guías Recientes</CardTitle>
-                <CardDescription>Últimos envíos registrados en el sistema</CardDescription>
-              </div>
-              <Link to="/guias">
-                <Button variant="ghost" size="sm" rightIcon={<ArrowRight className="w-3.5 h-3.5" />}>
-                  Ver todas
-                </Button>
-              </Link>
-            </CardHeader>
-
-            <div className="flex-1 overflow-x-auto">
-              {loadingGuias ? (
-                <div className="p-8 text-center text-slate-500 text-sm">Cargando guías...</div>
-              ) : guias.length === 0 ? (
-                <div className="p-10 text-center space-y-3">
-                  <div className="w-12 h-12 rounded-2xl bg-slate-800 text-slate-500 flex items-center justify-center mx-auto">
-                    <Package className="w-6 h-6" />
-                  </div>
-                  <p className="text-sm text-slate-400 font-medium">Aún no se han emitido guías</p>
-                  <Link to="/guias">
-                    <Button variant="outline" size="sm">Emitir primera guía</Button>
-                  </Link>
-                </div>
-              ) : (
-                <table className="w-full text-left text-xs border-collapse">
-                  <thead>
-                    <tr className="border-b border-slate-800/80 text-slate-400 font-mono uppercase tracking-wider text-[10px]">
-                      <th className="py-2.5 px-3">No. Guía</th>
-                      <th className="py-2.5 px-3">Peso Facturable</th>
-                      <th className="py-2.5 px-3">Costo Total</th>
-                      <th className="py-2.5 px-3">Estado</th>
-                      <th className="py-2.5 px-3 text-right">Acción</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-800/60 font-medium">
-                    {guias.slice(-5).reverse().map((g) => (
-                      <tr key={g.numeroGuia} className="hover:bg-slate-800/40 transition-colors">
-                        <td className="py-3 px-3 font-mono font-bold text-amber-400">
-                          #{g.numeroGuia}
-                        </td>
-                        <td className="py-3 px-3 text-slate-200">
-                          {formatWeight(g.pesoFacturableKg)}
-                        </td>
-                        <td className="py-3 px-3 font-mono font-semibold text-slate-100">
-                          {formatCurrency(g.costoTotal)}
-                        </td>
-                        <td className="py-3 px-3">
-                          <StatusBadge status={g.estado} />
-                        </td>
-                        <td className="py-3 px-3 text-right">
-                          <Link
-                            to={`/rastreo?no=${g.numeroGuia}`}
-                            className="inline-flex items-center text-xs font-semibold text-amber-400 hover:text-amber-300 transition-colors gap-1"
-                          >
-                            Rastrear <ArrowRight className="w-3 h-3" />
-                          </Link>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
-            </div>
-          </Card>
+      {/* Franja KPI unificada */}
+      <div className="rounded-xl border border-slate-800 bg-[#0c1220] grid grid-cols-2 md:grid-cols-4 divide-y md:divide-y-0 md:divide-x divide-slate-800/80">
+        {/* Guías */}
+        <div className="p-4 sm:p-5">
+          <p className="text-xs text-slate-400 font-medium">Guías</p>
+          <p className="text-2xl sm:text-3xl font-bold text-slate-100 mt-1 tabular-nums">
+            {totalGuias}
+          </p>
+          <p className="text-xs text-slate-500 mt-1">
+            {entregadas} entregadas
+          </p>
         </div>
 
-        {/* Fleet Status (Takes 1 col) */}
-        <div>
-          <Card className="h-full flex flex-col">
-            <CardHeader>
-              <div>
-                <CardTitle>Flota Vehicular</CardTitle>
-                <CardDescription>
-                  {vehiculosDisponibles} de {vehiculos.length} unidades disponibles
-                </CardDescription>
-              </div>
-              <Link to="/catalogos/vehiculos">
-                <Button variant="ghost" size="sm" rightIcon={<ArrowRight className="w-3.5 h-3.5" />}>
-                  Gestión
-                </Button>
-              </Link>
-            </CardHeader>
+        {/* En bodega */}
+        <div className="p-4 sm:p-5">
+          <p className="text-xs text-slate-400 font-medium">En bodega</p>
+          <p className="text-2xl sm:text-3xl font-bold text-slate-100 mt-1 tabular-nums">
+            {enBodega}
+          </p>
+          <p className="text-xs text-slate-500 mt-1">
+            pendientes
+          </p>
+        </div>
 
-            <div className="flex-1 overflow-y-auto space-y-3">
-              {loadingVehiculos ? (
-                <div className="p-8 text-center text-slate-500 text-sm">Cargando flota...</div>
-              ) : vehiculos.length === 0 ? (
-                <p className="text-center text-slate-500 text-xs py-8">No hay vehículos registrados</p>
-              ) : (
-                vehiculos.slice(0, 5).map((v: Vehiculo) => (
+        {/* En tránsito */}
+        <div className="p-4 sm:p-5">
+          <p className="text-xs text-slate-400 font-medium">En tránsito</p>
+          <p className="text-2xl sm:text-3xl font-bold text-slate-100 mt-1 tabular-nums">
+            {enTransito}
+          </p>
+          <p className="text-xs text-slate-500 mt-1">
+            en vehículos
+          </p>
+        </div>
+
+        {/* Facturado */}
+        <div className="p-4 sm:p-5">
+          <p className="text-xs text-slate-400 font-medium">Facturado</p>
+          <p className="text-2xl sm:text-3xl font-bold text-slate-100 mt-1 tabular-nums">
+            {formatCurrency(totalFacturado)}
+          </p>
+          <p className="text-xs text-slate-500 mt-1 opacity-0 select-none">
+            —
+          </p>
+        </div>
+      </div>
+
+      {/* Distribución 2/3 y 1/3: Guías recientes y Flota */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        {/* Guías recientes (2 cols) */}
+        <div className="lg:col-span-2 rounded-xl border border-slate-800 bg-[#0c1220] flex flex-col overflow-hidden">
+          <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-800">
+            <h2 className="text-sm font-semibold text-slate-200">
+              Guías recientes
+            </h2>
+            <Link
+              to="/guias"
+              className="text-xs text-slate-400 hover:text-slate-200 transition-colors font-medium"
+            >
+              Ver todas
+            </Link>
+          </div>
+
+          <div className="flex-1 overflow-x-auto">
+            {loadingGuias ? (
+              <div className="p-8 text-center text-slate-500 text-xs">Cargando guías...</div>
+            ) : guias.length === 0 ? (
+              <div className="p-8 text-center space-y-1">
+                <p className="text-xs text-slate-400">No hay guías registradas</p>
+              </div>
+            ) : (
+              <table className="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr className="border-b border-slate-800/80 text-slate-400 text-[11px] font-medium">
+                    <th className="py-2.5 px-4 font-medium">No. guía</th>
+                    <th className="py-2.5 px-4 font-medium">Peso</th>
+                    <th className="py-2.5 px-4 font-medium">Costo</th>
+                    <th className="py-2.5 px-4 font-medium">Estado</th>
+                    <th className="py-2.5 px-4 text-right font-medium">Acción</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-800/50">
+                  {guias.slice(-5).reverse().map((g) => (
+                    <tr key={g.numeroGuia} className="hover:bg-slate-850/40 transition-colors">
+                      <td className="py-2.5 px-4 font-mono font-medium text-slate-200">
+                        {g.numeroGuia}
+                      </td>
+                      <td className="py-2.5 px-4 text-slate-300 tabular-nums">
+                        {formatWeight(g.pesoFacturableKg)}
+                      </td>
+                      <td className="py-2.5 px-4 text-slate-300 tabular-nums">
+                        {formatCurrency(g.costoTotal)}
+                      </td>
+                      <td className="py-2.5 px-4">
+                        <StatusBadge status={g.estado} />
+                      </td>
+                      <td className="py-2.5 px-4 text-right">
+                        <Link
+                          to={`/rastreo?no=${g.numeroGuia}`}
+                          className="text-xs text-amber-500 hover:text-amber-400 transition-colors font-medium"
+                        >
+                          Rastrear
+                        </Link>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+        </div>
+
+        {/* Flota (1 col) */}
+        <div className="rounded-xl border border-slate-800 bg-[#0c1220] flex flex-col overflow-hidden">
+          <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-800">
+            <div>
+              <h2 className="text-sm font-semibold text-slate-200">
+                Flota
+              </h2>
+              <p className="text-[11px] text-slate-400 mt-0.5">
+                {vehiculosDisponibles} de {vehiculos.length} disponibles
+              </p>
+            </div>
+            <Link
+              to="/catalogos/vehiculos"
+              className="text-xs text-slate-400 hover:text-slate-200 transition-colors font-medium"
+            >
+              Gestionar
+            </Link>
+          </div>
+
+          <div className="flex-1 p-4">
+            {loadingVehiculos ? (
+              <div className="p-6 text-center text-slate-500 text-xs">Cargando flota...</div>
+            ) : vehiculos.length === 0 ? (
+              <div className="p-4 text-center space-y-2">
+                <p className="text-xs text-slate-400">
+                  No hay vehículos registrados.
+                </p>
+                <Link
+                  to="/catalogos/vehiculos"
+                  className="inline-block text-xs font-medium text-amber-500 hover:text-amber-400 transition-colors"
+                >
+                  Registrar vehículo
+                </Link>
+              </div>
+            ) : (
+              <div className="space-y-2.5">
+                {vehiculos.slice(0, 5).map((v: Vehiculo) => (
                   <div
                     key={v.id}
-                    className="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800/80 flex items-center justify-between"
+                    className="p-2.5 rounded-lg border border-slate-800/80 bg-slate-900/60 flex items-center justify-between text-xs"
                   >
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 rounded-lg bg-slate-800 text-slate-300">
-                        <Truck className="w-4 h-4" />
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="font-mono font-bold text-sm text-slate-100">{v.placa}</span>
-                        </div>
-                        <p className="text-[11px] text-slate-400 truncate max-w-[130px]">{v.marcaModelo}</p>
-                      </div>
+                    <div>
+                      <p className="font-mono font-medium text-slate-200">{v.placa}</p>
+                      <p className="text-[11px] text-slate-400 truncate max-w-[140px]">{v.marcaModelo}</p>
                     </div>
                     <div className="text-right">
                       <StatusBadge status={v.estado} />
-                      <p className="text-[10px] text-slate-500 font-mono mt-1">
+                      <p className="text-[10px] text-slate-500 tabular-nums mt-0.5">
                         {v.capacidadPesoKg} kg / {v.capacidadVolumenM3} m³
                       </p>
                     </div>
                   </div>
-                ))
-              )}
-            </div>
-          </Card>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
