@@ -3,23 +3,11 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { guiasApi } from "@/api/guias";
 import { despachoApi, ProcesarDespachoPayload } from "@/api/despacho";
 import { vehiculosApi, pilotosApi, clientesApi } from "@/api/catalogos";
-import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Select } from "@/components/ui/Select";
 import { CapacityBar } from "@/components/ui/CapacityBar";
-import { StatusBadge } from "@/components/ui/Badge";
-import { formatCurrency, formatWeight, formatVolume, formatNumber } from "@/lib/utils";
+import { formatCurrency, formatWeight, formatVolume } from "@/lib/utils";
 import { calcularVolumenM3 } from "@/lib/calculos";
-import {
-  Truck,
-  Package,
-  AlertTriangle,
-  History,
-  CheckCircle2,
-  Calendar,
-  User,
-  ArrowRight,
-} from "lucide-react";
 import { toast } from "sonner";
 import type { Guia } from "@/types";
 
@@ -98,7 +86,6 @@ export function DespachoPage() {
     !isOverWeight &&
     !isOverVolume;
 
-  // Toggle guide selection
   const handleToggleGuia = (num: number) => {
     setSelectedGuias((prev) =>
       prev.includes(num) ? prev.filter((id) => id !== num) : [...prev, num]
@@ -122,7 +109,7 @@ export function DespachoPage() {
       queryClient.invalidateQueries({ queryKey: ["despachos"] });
       queryClient.invalidateQueries({ queryKey: ["liquidacion"] });
       toast.success(
-        `Despacho procesado exitosamente: ${resultado.totalGuias} guías asignadas al vehículo`
+        `Despacho procesado: ${resultado.totalGuias} guías asignadas al vehículo`
       );
       setSelectedGuias([]);
       setSelectedVehiculoId(0);
@@ -141,7 +128,7 @@ export function DespachoPage() {
       return;
     }
     if (isVehicleInTaller) {
-      toast.error("El vehículo seleccionado está en taller y no puede ser despachado");
+      toast.error("El vehículo seleccionado está en taller");
       return;
     }
     if (selectedGuias.length === 0) {
@@ -161,36 +148,34 @@ export function DespachoPage() {
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-200">
-      {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="space-y-5">
+      {/* Cabecera */}
+      <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-extrabold text-white font-heading">
-            Asignación de Carga y Despacho
-          </h2>
-          <p className="text-xs sm:text-sm text-slate-400 mt-1">
-            Algoritmo acumulativo de control de capacidad vehicular (peso y volumen).
+          <h1 className="text-xl font-semibold text-slate-100">Asignación de Carga</h1>
+          <p className="text-xs text-slate-400 mt-0.5">
+            Asignación de guías en bodega a unidades de transporte y control de capacidad
           </p>
         </div>
 
-        {/* Tab switch */}
-        <div className="flex items-center gap-1.5 p-1 bg-slate-900 border border-slate-800 rounded-xl">
+        {/* Pestañas sobrias */}
+        <div className="flex items-center gap-1 p-0.5 bg-slate-900 border border-slate-800 rounded-lg text-xs">
           <button
             onClick={() => setActiveTab("nuevo")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+            className={`px-3 py-1 rounded-md transition-colors cursor-pointer ${
               activeTab === "nuevo"
-                ? "bg-amber-500 text-slate-950 shadow"
-                : "text-slate-400 hover:text-white"
+                ? "bg-slate-800 text-slate-100 font-medium"
+                : "text-slate-400 hover:text-slate-200"
             }`}
           >
-            Nuevo Despacho
+            Nuevo despacho
           </button>
           <button
             onClick={() => setActiveTab("historial")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+            className={`px-3 py-1 rounded-md transition-colors cursor-pointer ${
               activeTab === "historial"
-                ? "bg-amber-500 text-slate-950 shadow"
-                : "text-slate-400 hover:text-white"
+                ? "bg-slate-800 text-slate-100 font-medium"
+                : "text-slate-400 hover:text-slate-200"
             }`}
           >
             Historial ({despachos.length})
@@ -199,35 +184,27 @@ export function DespachoPage() {
       </div>
 
       {activeTab === "nuevo" ? (
-        <form onSubmit={handleSubmitDespacho} className="space-y-6">
-          {/* Vehicle and Pilot configuration card */}
-          <Card className="p-6">
-            <CardHeader className="mb-4">
-              <div>
-                <CardTitle>1. Configuración de Transporte</CardTitle>
-                <CardDescription>
-                  Seleccione el vehículo y piloto asignados para la ruta
-                </CardDescription>
-              </div>
-            </CardHeader>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <form onSubmit={handleSubmitDespacho} className="space-y-4">
+          {/* Configuración de transporte */}
+          <div className="rounded-xl border border-slate-800 bg-[#0d1425] p-4 space-y-3">
+            <h2 className="text-xs font-medium text-slate-300">Transporte y piloto</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <Select
-                label="Vehículo Asignado"
+                label="Vehículo asignado"
                 value={selectedVehiculoId}
                 onChange={(e) => setSelectedVehiculoId(Number(e.target.value))}
                 required
               >
-                <option value="0">-- Seleccione Vehículo --</option>
+                <option value="0">-- Seleccione vehículo --</option>
                 {vehiculos.map((v) => (
                   <option key={v.id} value={v.id}>
-                    {v.placa} — {v.marcaModelo} ({v.estado}) [Cap: {v.capacidadPesoKg} kg / {v.capacidadVolumenM3} m³]
+                    {v.placa} - {v.marcaModelo} ({v.estado}) [Cap: {v.capacidadPesoKg} kg / {v.capacidadVolumenM3} m³]
                   </option>
                 ))}
               </Select>
 
               <Select
-                label="Piloto / Conductor (Opcional)"
+                label="Piloto asignado"
                 value={selectedPilotoId}
                 onChange={(e) => setSelectedPilotoId(Number(e.target.value))}
               >
@@ -240,90 +217,79 @@ export function DespachoPage() {
               </Select>
             </div>
 
-            {/* Warning if vehicle in taller */}
             {isVehicleInTaller && (
-              <div className="mt-4 p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 flex items-center gap-3 text-rose-400 text-xs font-medium">
-                <AlertTriangle className="w-5 h-5 shrink-0" />
-                <span>
-                  El vehículo seleccionado se encuentra en estado <strong>En taller</strong>. Las reglas de negocio impiden asignar despachos a unidades no operativas.
-                </span>
-              </div>
+              <p className="text-xs text-rose-400">
+                El vehículo seleccionado está en taller y no puede recibir carga.
+              </p>
             )}
 
-            {/* Live Capacity Indicators */}
+            {/* Capacidad en tiempo real */}
             {selectedVehiculo && !isVehicleInTaller && (
-              <div className="mt-6 pt-5 border-t border-slate-800 space-y-4">
-                <div className="flex items-center justify-between text-xs font-mono">
-                  <span className="font-bold text-amber-400 uppercase tracking-wider">
-                    Control de Capacidad en Tiempo Real
-                  </span>
-                  <span className="text-slate-400">
-                    {selectedGuias.length} guías seleccionadas
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 rounded-xl bg-slate-950/80 border border-slate-800/80">
-                  <CapacityBar
-                    label="Capacidad de Peso"
-                    current={totalPesoKg}
-                    max={selectedVehiculo.capacidadPesoKg}
-                    unit="kg"
-                  />
-                  <CapacityBar
-                    label="Capacidad de Volumen"
-                    current={totalVolumenM3}
-                    max={selectedVehiculo.capacidadVolumenM3}
-                    unit="m³"
-                  />
-                </div>
+              <div className="pt-3 border-t border-slate-800/80 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <CapacityBar
+                  label="Capacidad de peso"
+                  current={totalPesoKg}
+                  max={selectedVehiculo.capacidadPesoKg}
+                  unit="kg"
+                />
+                <CapacityBar
+                  label="Capacidad de volumen"
+                  current={totalVolumenM3}
+                  max={selectedVehiculo.capacidadVolumenM3}
+                  unit="m³"
+                />
               </div>
             )}
-          </Card>
+          </div>
 
-          {/* Pending Guides Selection Card */}
-          <Card className="p-6">
-            <CardHeader className="mb-4">
+          {/* Tabla densa con selección de guías */}
+          <div className="rounded-xl border border-slate-800 bg-[#0d1425] overflow-hidden">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-slate-800">
               <div>
-                <CardTitle>2. Selección de Paquetes en Bodega</CardTitle>
-                <CardDescription>
-                  Marque las guías que se cargarán físicamente en el transporte
-                </CardDescription>
+                <h2 className="text-xs font-medium text-slate-300">Guías pendientes en bodega</h2>
+                <p className="text-[11px] text-slate-400 mt-0.5">
+                  Seleccione las guías que se cargarán en la unidad
+                </p>
               </div>
               {guiasDisponibles.length > 0 && (
-                <Button
+                <button
                   type="button"
-                  variant="outline"
-                  size="sm"
                   onClick={handleSelectAll}
+                  className="text-xs text-slate-400 hover:text-slate-200 transition-colors font-medium cursor-pointer"
                 >
                   {selectedGuias.length === guiasDisponibles.length ? "Desmarcar todas" : "Seleccionar todas"}
-                </Button>
+                </button>
               )}
-            </CardHeader>
+            </div>
 
-            {loadingGuias ? (
-              <div className="p-8 text-center text-slate-500 text-xs">Cargando guías en bodega...</div>
-            ) : guiasDisponibles.length === 0 ? (
-              <div className="p-8 text-center space-y-2">
-                <CheckCircle2 className="w-10 h-10 text-emerald-500 mx-auto" />
-                <p className="text-sm font-semibold text-slate-200">No hay guías pendientes en bodega</p>
-                <p className="text-xs text-slate-500">Todas las guías emitidas ya han sido despachadas o entregadas.</p>
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
+            <div className="overflow-x-auto">
+              {loadingGuias ? (
+                <div className="p-8 text-center text-slate-500 text-xs">Cargando guías en bodega...</div>
+              ) : guiasDisponibles.length === 0 ? (
+                <div className="p-8 text-center text-xs text-slate-400">
+                  No hay guías pendientes en bodega para despachar.
+                </div>
+              ) : (
                 <table className="w-full text-left text-xs border-collapse">
                   <thead>
-                    <tr className="border-b border-slate-800 bg-slate-950/40 text-slate-400 font-mono uppercase text-[10px] tracking-wider">
-                      <th className="py-2.5 px-3 w-10">Cargar</th>
-                      <th className="py-2.5 px-3">No. Guía</th>
+                    <tr className="border-b border-slate-800 bg-slate-900/50 text-slate-400 text-[11px] font-medium">
+                      <th className="py-2.5 px-3 w-10 text-center">
+                        <input
+                          type="checkbox"
+                          checked={selectedGuias.length === guiasDisponibles.length && guiasDisponibles.length > 0}
+                          onChange={handleSelectAll}
+                          className="rounded border-slate-700 bg-slate-900 text-amber-500 focus:ring-0 cursor-pointer"
+                        />
+                      </th>
+                      <th className="py-2.5 px-3">No. guía</th>
                       <th className="py-2.5 px-3">Remitente</th>
                       <th className="py-2.5 px-3">Destinatario</th>
-                      <th className="py-2.5 px-3">Peso Fact.</th>
+                      <th className="py-2.5 px-3">Peso fact.</th>
                       <th className="py-2.5 px-3">Volumen m³</th>
-                      <th className="py-2.5 px-3">Costo</th>
+                      <th className="py-2.5 px-3 text-right">Costo</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-800/60 font-medium">
+                  <tbody className="divide-y divide-slate-800/60">
                     {guiasDisponibles.map((g) => {
                       const isSelected = selectedGuias.includes(g.numeroGuia);
                       const volM3 = calcularVolumenM3(g.largoCm, g.anchoCm, g.altoCm);
@@ -333,33 +299,33 @@ export function DespachoPage() {
                           key={g.numeroGuia}
                           onClick={() => handleToggleGuia(g.numeroGuia)}
                           className={`cursor-pointer transition-colors ${
-                            isSelected ? "bg-amber-500/10" : "hover:bg-slate-800/30"
+                            isSelected ? "bg-slate-800/50" : "hover:bg-slate-900/40"
                           }`}
                         >
-                          <td className="py-3 px-3">
+                          <td className="py-2 px-3 text-center" onClick={(e) => e.stopPropagation()}>
                             <input
                               type="checkbox"
                               checked={isSelected}
                               onChange={() => handleToggleGuia(g.numeroGuia)}
-                              className="w-4 h-4 rounded text-amber-500 focus:ring-amber-500 bg-slate-900 border-slate-700 cursor-pointer"
+                              className="rounded border-slate-700 bg-slate-900 text-amber-500 focus:ring-0 cursor-pointer"
                             />
                           </td>
-                          <td className="py-3 px-3 font-mono font-bold text-amber-400">
-                            #{g.numeroGuia}
+                          <td className="py-2 px-3 font-mono font-medium text-slate-200">
+                            {g.numeroGuia}
                           </td>
-                          <td className="py-3 px-3 text-slate-200">
-                            {clientesMap.get(g.idClienteRemitente) || `Cliente #${g.idClienteRemitente}`}
+                          <td className="py-2 px-3 text-slate-300 truncate max-w-[150px]">
+                            {clientesMap.get(g.idClienteRemitente) || `#${g.idClienteRemitente}`}
                           </td>
-                          <td className="py-3 px-3 text-slate-200">
-                            {clientesMap.get(g.idClienteDestinatario) || `Cliente #${g.idClienteDestinatario}`}
+                          <td className="py-2 px-3 text-slate-300 truncate max-w-[150px]">
+                            {clientesMap.get(g.idClienteDestinatario) || `#${g.idClienteDestinatario}`}
                           </td>
-                          <td className="py-3 px-3 font-mono text-slate-100">
+                          <td className="py-2 px-3 text-slate-300 tabular-nums">
                             {formatWeight(g.pesoFacturableKg)}
                           </td>
-                          <td className="py-3 px-3 font-mono text-slate-300">
-                            {formatVolume(volM3)}
+                          <td className="py-2 px-3 text-slate-400 tabular-nums">
+                            {volM3.toFixed(4)}
                           </td>
-                          <td className="py-3 px-3 font-mono font-semibold text-emerald-400">
+                          <td className="py-2 px-3 text-right text-slate-300 tabular-nums">
                             {formatCurrency(g.costoTotal)}
                           </td>
                         </tr>
@@ -367,79 +333,76 @@ export function DespachoPage() {
                     })}
                   </tbody>
                 </table>
-              </div>
-            )}
+              )}
+            </div>
 
-            {/* Action footer */}
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-6 mt-6 border-t border-slate-800">
-              <div className="text-xs font-mono text-slate-400">
-                Resumen: <strong className="text-slate-100">{selectedGuias.length}</strong> guías ·{" "}
-                <strong className="text-slate-100">{formatWeight(totalPesoKg)}</strong> ·{" "}
-                <strong className="text-slate-100">{formatVolume(totalVolumenM3)}</strong>
+            {/* Acción primaria única al pie con resumen */}
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 border-t border-slate-800 bg-[#0b1120]">
+              <div className="text-xs text-slate-400 tabular-nums">
+                Selección: <span className="font-medium text-slate-200">{selectedGuias.length}</span> guías ·{" "}
+                <span className="font-medium text-slate-200">{formatWeight(totalPesoKg)}</span> ·{" "}
+                <span className="font-medium text-slate-200">{formatVolume(totalVolumenM3)}</span>
               </div>
 
               <Button
                 type="submit"
                 variant="primary"
-                size="lg"
+                size="sm"
                 disabled={!canDispatch}
                 isLoading={dispatchMutation.isPending}
-                leftIcon={<Truck className="w-5 h-5" />}
               >
-                Procesar Despacho Físico
+                Despachar carga
               </Button>
             </div>
-          </Card>
+          </div>
         </form>
-        ) : (
-        /* Dispatch History Tab */
-        <Card className="p-0 overflow-hidden">
+      ) : (
+        /* Pestaña Historial */
+        <div className="rounded-xl border border-slate-800 bg-[#0d1425] overflow-hidden">
           <div className="overflow-x-auto">
             {loadingDespachos ? (
-              <div className="p-12 text-center text-slate-500 text-xs">Cargando historial de despachos...</div>
+              <div className="p-8 text-center text-slate-500 text-xs">Cargando despachos...</div>
             ) : despachos.length === 0 ? (
-              <div className="p-12 text-center space-y-2">
-                <Truck className="w-10 h-10 text-slate-600 mx-auto mb-2" />
-                <p className="text-sm font-semibold text-slate-300">No hay registros de despachos</p>
-                <p className="text-xs text-slate-500">Los envíos procesados aparecerán aquí para auditoría.</p>
+              <div className="p-8 text-center text-xs text-slate-400">
+                No hay despachos registrados en el historial.
               </div>
             ) : (
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
-                  <tr className="border-b border-slate-800 bg-slate-950/50 text-slate-400 font-mono uppercase text-[10px] tracking-wider">
-                    <th className="py-3 px-4">ID Despacho</th>
-                    <th className="py-3 px-4">Vehículo</th>
-                    <th className="py-3 px-4">Piloto</th>
-                    <th className="py-3 px-4">No. Guía</th>
-                    <th className="py-3 px-4">Peso Cargado</th>
-                    <th className="py-3 px-4">Volumen Cargado</th>
-                    <th className="py-3 px-4">Fecha y Hora</th>
+                  <tr className="border-b border-slate-800 bg-slate-900/50 text-slate-400 text-[11px] font-medium">
+                    <th className="py-2.5 px-3">ID</th>
+                    <th className="py-2.5 px-3">Vehículo</th>
+                    <th className="py-2.5 px-3">Piloto</th>
+                    <th className="py-2.5 px-3">No. guía</th>
+                    <th className="py-2.5 px-3">Peso</th>
+                    <th className="py-2.5 px-3">Volumen</th>
+                    <th className="py-2.5 px-3">Fecha</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/60 font-medium font-mono">
+                <tbody className="divide-y divide-slate-800/60">
                   {despachos.slice().reverse().map((d) => {
                     const veh = vehiculos.find((v) => v.id === d.idVehiculo);
                     const pil = pilotos.find((p) => p.id === d.idPiloto);
 
                     return (
-                      <tr key={d.id} className="hover:bg-slate-800/30 transition-colors">
-                        <td className="py-3 px-4 text-slate-400 font-bold">#{d.id}</td>
-                        <td className="py-3 px-4 text-slate-100">
+                      <tr key={d.id} className="hover:bg-slate-900/40 transition-colors">
+                        <td className="py-2 px-3 text-slate-400 font-mono">#{d.id}</td>
+                        <td className="py-2 px-3 text-slate-200">
                           {veh ? `${veh.placa} (${veh.marcaModelo})` : `Vehículo #${d.idVehiculo}`}
                         </td>
-                        <td className="py-3 px-4 text-slate-300">
+                        <td className="py-2 px-3 text-slate-300">
                           {pil ? pil.nombre : d.idPiloto ? `Piloto #${d.idPiloto}` : "Sin piloto"}
                         </td>
-                        <td className="py-3 px-4 text-amber-400 font-bold">
-                          #{d.numeroGuia}
+                        <td className="py-2 px-3 text-slate-200 font-mono">
+                          {d.numeroGuia}
                         </td>
-                        <td className="py-3 px-4 text-slate-200">
+                        <td className="py-2 px-3 text-slate-300 tabular-nums">
                           {formatWeight(d.pesoKg)}
                         </td>
-                        <td className="py-3 px-4 text-slate-300">
+                        <td className="py-2 px-3 text-slate-400 tabular-nums">
                           {formatVolume(d.volumenM3)}
                         </td>
-                        <td className="py-3 px-4 text-slate-400">
+                        <td className="py-2 px-3 text-slate-400 text-[11px]">
                           {d.fechaDespacho || "N/A"}
                         </td>
                       </tr>
@@ -449,9 +412,8 @@ export function DespachoPage() {
               </table>
             )}
           </div>
-        </Card>
+        </div>
       )}
     </div>
   );
 }
-

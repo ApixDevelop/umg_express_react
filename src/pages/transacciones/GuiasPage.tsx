@@ -1,8 +1,8 @@
 ﻿import React, { useState, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Link } from "react-router";
 import { guiasApi, CrearGuiaPayload } from "@/api/guias";
 import { clientesApi, rutasApi, sucursalesApi, tarifasApi } from "@/api/catalogos";
-import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
@@ -11,8 +11,6 @@ import { Modal } from "@/components/ui/Modal";
 import {
   formatCurrency,
   formatWeight,
-  formatVolume,
-  formatNumber,
 } from "@/lib/utils";
 import {
   calcularPesoVolumetrico,
@@ -21,14 +19,9 @@ import {
   calcularCostoEstimado,
 } from "@/lib/calculos";
 import {
-  Package,
-  PlusCircle,
+  Plus,
   Search,
   Printer,
-  Sparkles,
-  ArrowRight,
-  Info,
-  CheckCircle2,
 } from "lucide-react";
 import { toast } from "sonner";
 import type { Guia } from "@/types";
@@ -76,7 +69,6 @@ export function GuiasPage() {
     queryFn: () => tarifasApi.listar(),
   });
 
-  // Map for branch names
   const sucursalesMap = useMemo(() => {
     return new Map(sucursales.map((s) => [s.id, s.nombre]));
   }, [sucursales]);
@@ -85,11 +77,9 @@ export function GuiasPage() {
     return new Map(clientes.map((c) => [c.id, c.nombre]));
   }, [clientes]);
 
-  // Selected route and tariff objects for live calculation
   const selectedRuta = rutas.find((r) => r.id === Number(idRuta));
   const selectedTarifa = tarifas.find((t) => t.id === Number(idTarifa));
 
-  // Live calculations
   const livePesoVolumetrico = calcularPesoVolumetrico(largo, ancho, alto);
   const liveVolumenM3 = calcularVolumenM3(largo, ancho, alto);
   const livePesoFacturable = calcularPesoFacturable(pesoReal, livePesoVolumetrico);
@@ -100,7 +90,6 @@ export function GuiasPage() {
     selectedTarifa
   );
 
-  // Mutation
   const createMutation = useMutation({
     mutationFn: (payload: CrearGuiaPayload) => guiasApi.crear(payload),
     onSuccess: (guiaCreada) => {
@@ -142,7 +131,6 @@ export function GuiasPage() {
     });
   };
 
-  // Filtered guides
   const filteredGuias = useMemo(() => {
     return guias.filter((g) => {
       const matchSearch =
@@ -157,19 +145,18 @@ export function GuiasPage() {
   }, [guias, searchTerm, filterEstado, clientesMap]);
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-200">
-      {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="space-y-5">
+      {/* Cabecera */}
+      <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-extrabold text-white font-heading">
-            Gestión de Guías de Envío
-          </h2>
-          <p className="text-xs sm:text-sm text-slate-400 mt-1">
-            Recepción de paquetería, cubicaje volumétrico y emisión de guías numeradas.
+          <h1 className="text-xl font-semibold text-slate-100">Emisión de Guías</h1>
+          <p className="text-xs text-slate-400 mt-0.5">
+            Registro, cubicaje y emisión de guías de envío
           </p>
         </div>
         <Button
           variant="primary"
+          size="sm"
           onClick={() => {
             if (clientes.length < 2) {
               toast.error("Debe tener al menos 2 clientes registrados para emitir guías");
@@ -179,108 +166,110 @@ export function GuiasPage() {
             }
             setIsModalOpen(true);
           }}
-          leftIcon={<PlusCircle className="w-4 h-4" />}
+          leftIcon={<Plus className="w-3.5 h-3.5" />}
         >
-          Emitir Nueva Guía
+          Nueva guía
         </Button>
       </div>
 
-      {/* Filters Bar */}
-      <Card className="p-4">
-        <div className="flex flex-col sm:flex-row items-center gap-3">
-          <div className="relative flex-1 w-full">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Buscar por número de guía o cliente..."
-              className="w-full bg-slate-950/80 text-slate-100 text-xs sm:text-sm rounded-xl border border-slate-800 pl-10 pr-4 py-2.5 focus:outline-none focus:border-amber-500 font-mono"
-            />
-          </div>
-          <div className="flex items-center gap-2 w-full sm:w-auto">
-            <select
-              value={filterEstado}
-              onChange={(e) => setFilterEstado(e.target.value)}
-              className="w-full sm:w-48 bg-slate-950/80 text-slate-200 text-xs sm:text-sm rounded-xl border border-slate-800 px-3 py-2.5 focus:outline-none focus:border-amber-500 font-mono cursor-pointer"
-            >
-              <option value="TODOS">Todos los estados</option>
-              <option value="Creada">En Bodega</option>
-              <option value="Despachada">En Ruta</option>
-              <option value="Entregada">Entregada</option>
-            </select>
-          </div>
+      {/* Barra de herramientas */}
+      <div className="rounded-xl border border-slate-800 bg-[#0d1425] p-3 flex flex-col sm:flex-row items-center gap-2.5">
+        <div className="relative flex-1 w-full">
+          <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Buscar por número o cliente..."
+            className="w-full bg-slate-900 text-slate-100 text-xs rounded-lg border border-slate-750 pl-8 pr-3 py-1.5 focus:outline-none focus:border-amber-500 font-mono"
+          />
         </div>
-      </Card>
+        <div className="w-full sm:w-auto">
+          <select
+            value={filterEstado}
+            onChange={(e) => setFilterEstado(e.target.value)}
+            className="w-full sm:w-44 bg-slate-900 text-slate-200 text-xs rounded-lg border border-slate-750 px-3 py-1.5 focus:outline-none focus:border-amber-500 cursor-pointer"
+          >
+            <option value="TODOS">Todos los estados</option>
+            <option value="Creada">En bodega</option>
+            <option value="Despachada">En tránsito</option>
+            <option value="Entregada">Entregada</option>
+          </select>
+        </div>
+      </div>
 
-      {/* Guides Table */}
-      <Card className="p-0 overflow-hidden">
+      {/* Listado denso */}
+      <div className="rounded-xl border border-slate-800 bg-[#0d1425] overflow-hidden">
         <div className="overflow-x-auto">
           {loadingGuias ? (
-            <div className="p-12 text-center text-slate-500">Cargando catálogo de guías...</div>
+            <div className="p-8 text-center text-slate-500 text-xs">Cargando guías...</div>
           ) : filteredGuias.length === 0 ? (
-            <div className="p-12 text-center space-y-2">
-              <Package className="w-10 h-10 text-slate-600 mx-auto mb-2" />
-              <p className="text-sm font-semibold text-slate-300">No se encontraron guías</p>
-              <p className="text-xs text-slate-500">
-                {searchTerm ? "Pruebe con otro término de búsqueda" : "Haga clic en 'Emitir Nueva Guía' para comenzar"}
-              </p>
+            <div className="p-8 text-center text-xs text-slate-400">
+              No hay guías registradas que coincidan con la búsqueda.
             </div>
           ) : (
             <table className="w-full text-left text-xs border-collapse">
               <thead>
-                <tr className="border-b border-slate-800 bg-slate-950/50 text-slate-400 font-mono uppercase text-[10px] tracking-wider">
-                  <th className="py-3 px-4">No. Guía</th>
-                  <th className="py-3 px-4">Remitente</th>
-                  <th className="py-3 px-4">Destinatario</th>
-                  <th className="py-3 px-4">Ruta</th>
-                  <th className="py-3 px-4">Medidas (cm)</th>
-                  <th className="py-3 px-4">Peso Fact.</th>
-                  <th className="py-3 px-4">Costo Total</th>
-                  <th className="py-3 px-4">Estado</th>
-                  <th className="py-3 px-4 text-right">Acción</th>
+                <tr className="border-b border-slate-800 bg-slate-900/50 text-slate-400 text-[11px] font-medium">
+                  <th className="py-2.5 px-3">No. guía</th>
+                  <th className="py-2.5 px-3">Remitente</th>
+                  <th className="py-2.5 px-3">Destinatario</th>
+                  <th className="py-2.5 px-3">Ruta</th>
+                  <th className="py-2.5 px-3">Medidas</th>
+                  <th className="py-2.5 px-3">Peso fact.</th>
+                  <th className="py-2.5 px-3">Costo</th>
+                  <th className="py-2.5 px-3">Estado</th>
+                  <th className="py-2.5 px-3 text-right">Acción</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/60 font-medium">
+              <tbody className="divide-y divide-slate-800/60">
                 {filteredGuias.map((g) => {
                   const rutaObj = rutas.find((r) => r.id === g.idRuta);
                   const origName = rutaObj ? sucursalesMap.get(rutaObj.idSucursalOrigen) : `Suc ${g.idRuta}`;
                   const destName = rutaObj ? sucursalesMap.get(rutaObj.idSucursalDestino) : `Dest`;
 
                   return (
-                    <tr key={g.numeroGuia} className="hover:bg-slate-800/30 transition-colors">
-                      <td className="py-3 px-4 font-mono font-bold text-amber-400">
-                        #{g.numeroGuia}
+                    <tr key={g.numeroGuia} className="hover:bg-slate-900/40 transition-colors">
+                      <td className="py-2 px-3 font-mono font-medium text-slate-200">
+                        {g.numeroGuia}
                       </td>
-                      <td className="py-3 px-4 text-slate-200">
+                      <td className="py-2 px-3 text-slate-200 truncate max-w-[140px]">
                         {clientesMap.get(g.idClienteRemitente) || `Cliente #${g.idClienteRemitente}`}
                       </td>
-                      <td className="py-3 px-4 text-slate-200">
+                      <td className="py-2 px-3 text-slate-200 truncate max-w-[140px]">
                         {clientesMap.get(g.idClienteDestinatario) || `Cliente #${g.idClienteDestinatario}`}
                       </td>
-                      <td className="py-3 px-4 text-slate-400 text-[11px]">
+                      <td className="py-2 px-3 text-slate-400 text-[11px]">
                         {origName} → {destName}
                       </td>
-                      <td className="py-3 px-4 text-slate-400 font-mono text-[11px]">
+                      <td className="py-2 px-3 text-slate-400 font-mono text-[11px]">
                         {g.largoCm}×{g.anchoCm}×{g.altoCm}
                       </td>
-                      <td className="py-3 px-4 font-mono font-semibold text-slate-200">
+                      <td className="py-2 px-3 text-slate-300 tabular-nums">
                         {formatWeight(g.pesoFacturableKg)}
                       </td>
-                      <td className="py-3 px-4 font-mono font-bold text-emerald-400">
+                      <td className="py-2 px-3 text-slate-300 tabular-nums font-medium">
                         {formatCurrency(g.costoTotal)}
                       </td>
-                      <td className="py-3 px-4">
+                      <td className="py-2 px-3">
                         <StatusBadge status={g.estado} />
                       </td>
-                      <td className="py-3 px-4 text-right">
-                        <button
-                          onClick={() => setCreatedGuiaModal(g)}
-                          title="Ver e Imprimir Etiqueta"
-                          className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-colors cursor-pointer"
-                        >
-                          <Printer className="w-3.5 h-3.5" />
-                        </button>
+                      <td className="py-2 px-3 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <Link
+                            to={`/rastreo?no=${g.numeroGuia}`}
+                            className="text-xs text-amber-500 hover:text-amber-400 transition-colors font-medium"
+                          >
+                            Rastrear
+                          </Link>
+                          <button
+                            onClick={() => setCreatedGuiaModal(g)}
+                            title="Imprimir comprobante"
+                            className="p-1 rounded text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors cursor-pointer"
+                          >
+                            <Printer className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -289,25 +278,25 @@ export function GuiasPage() {
             </table>
           )}
         </div>
-      </Card>
+      </div>
 
-      {/* Emission Modal */}
+      {/* Formulario de emisión (Modal hasta 720px) */}
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         title="Emisión de Guía de Envío"
-        description="Capture las dimensiones del paquete y los datos de clientes para calcular el flete automáticamente."
-        maxWidth="2xl"
+        description="Capture remitente, destinatario y medidas físicas del envío."
+        maxWidth="720"
       >
-        <form onSubmit={handleCrearGuia} className="space-y-5">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <form onSubmit={handleCrearGuia} className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <Select
-              label="Cliente Remitente"
+              label="Cliente remitente"
               value={idRemitente}
               onChange={(e) => setIdRemitente(Number(e.target.value))}
               required
             >
-              <option value="0">-- Seleccione Remitente --</option>
+              <option value="0">-- Seleccione remitente --</option>
               {clientes.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.nombre} (NIT: {c.nit})
@@ -316,12 +305,12 @@ export function GuiasPage() {
             </Select>
 
             <Select
-              label="Cliente Destinatario"
+              label="Cliente destinatario"
               value={idDestinatario}
               onChange={(e) => setIdDestinatario(Number(e.target.value))}
               required
             >
-              <option value="0">-- Seleccione Destinatario --</option>
+              <option value="0">-- Seleccione destinatario --</option>
               {clientes.map((c) => (
                 <option key={c.id} value={c.id} disabled={c.id === Number(idRemitente)}>
                   {c.nombre} {c.id === Number(idRemitente) ? "(Mismo cliente)" : ""}
@@ -330,14 +319,14 @@ export function GuiasPage() {
             </Select>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <Select
-              label="Ruta de Distribución"
+              label="Ruta de distribución"
               value={idRuta}
               onChange={(e) => setIdRuta(Number(e.target.value))}
               required
             >
-              <option value="0">-- Seleccione Ruta --</option>
+              <option value="0">-- Seleccione ruta --</option>
               {rutas.map((r) => (
                 <option key={r.id} value={r.id}>
                   {sucursalesMap.get(r.idSucursalOrigen) || `Origen ${r.idSucursalOrigen}`} →{" "}
@@ -347,7 +336,7 @@ export function GuiasPage() {
             </Select>
 
             <Select
-              label="Tipo de Carga / Tarifa (Opcional)"
+              label="Tipo de carga / tarifa"
               value={idTarifa}
               onChange={(e) => setIdTarifa(Number(e.target.value))}
             >
@@ -360,13 +349,10 @@ export function GuiasPage() {
             </Select>
           </div>
 
-          {/* Measurements */}
-          <div className="p-4 rounded-xl bg-slate-950/60 border border-slate-800 space-y-3">
-            <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-amber-500 font-mono">
-              <Sparkles className="w-4 h-4" />
-              <span>Dimensiones y Cubicaje Físico</span>
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {/* Dimensiones y cubicaje */}
+          <div className="rounded-lg border border-slate-800 bg-slate-900/60 p-3 space-y-3">
+            <span className="text-xs font-medium text-slate-300 block">Medidas físicas del paquete</span>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
               <Input
                 label="Largo (cm)"
                 type="number"
@@ -395,139 +381,107 @@ export function GuiasPage() {
                 required
               />
               <Input
-                label="Peso Real (kg)"
+                label="Peso real (kg)"
                 type="number"
-                step="0.1"
-                min="0.1"
+                step="0.01"
+                min="0.01"
                 value={pesoReal}
                 onChange={(e) => setPesoReal(parseFloat(e.target.value) || 0)}
                 required
               />
             </div>
-          </div>
 
-          {/* Real-time Mathematical Preview */}
-          <div className="p-4 rounded-xl bg-gradient-to-br from-slate-900 to-amber-950/20 border border-amber-500/30 space-y-3">
-            <div className="flex items-center justify-between text-xs">
-              <span className="font-bold text-amber-400 uppercase tracking-wider font-mono">
-                Cálculo Matemático en Vivo
-              </span>
-              <span className="text-[10px] text-slate-400 font-mono">
-                Fórmula: (L×W×H)/5000
-              </span>
-            </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs font-mono">
-              <div className="p-2.5 rounded-lg bg-slate-950/80 border border-slate-800">
-                <span className="text-[10px] text-slate-400 block">Peso Volumétrico</span>
-                <span className="text-sm font-bold text-slate-100">{formatWeight(livePesoVolumetrico)}</span>
+            {/* Resumen de cálculo en tiempo real */}
+            <div className="pt-2 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-400 tabular-nums">
+              <div>
+                Volumen: <span className="text-slate-200">{liveVolumenM3.toFixed(4)} m³</span> · Volumétrico: <span className="text-slate-200">{livePesoVolumetrico.toFixed(2)} kg</span>
               </div>
-              <div className="p-2.5 rounded-lg bg-slate-950/80 border border-slate-800">
-                <span className="text-[10px] text-slate-400 block">Volumen (m³)</span>
-                <span className="text-sm font-bold text-slate-100">{formatVolume(liveVolumenM3)}</span>
+              <div>
+                Peso facturable: <span className="font-medium text-slate-200">{livePesoFacturable.toFixed(2)} kg</span>
               </div>
-              <div className="p-2.5 rounded-lg bg-slate-950/80 border border-amber-500/40">
-                <span className="text-[10px] text-amber-400 block font-bold">Peso Facturable</span>
-                <span className="text-sm font-extrabold text-amber-400">{formatWeight(livePesoFacturable)}</span>
-              </div>
-              <div className="p-2.5 rounded-lg bg-slate-950/80 border border-emerald-500/40">
-                <span className="text-[10px] text-emerald-400 block font-bold">Costo Estimado</span>
-                <span className="text-sm font-extrabold text-emerald-400">{formatCurrency(liveCostoEstimado)}</span>
+              <div>
+                Costo estimado: <span className="font-semibold text-amber-500">{formatCurrency(liveCostoEstimado)}</span>
               </div>
             </div>
-
-            <p className="text-[11px] text-slate-400">
-              * El peso facturable aplica el mayor entre el peso real ({formatWeight(pesoReal)}) y el peso volumétrico ({formatWeight(livePesoVolumetrico)}).
-            </p>
           </div>
 
-          <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-800">
-            <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>
+          <div className="flex justify-end gap-2 pt-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setIsModalOpen(false)}
+            >
               Cancelar
             </Button>
-            <Button type="submit" variant="primary" isLoading={createMutation.isPending}>
-              Emitir y Guardar Guía
+            <Button
+              type="submit"
+              variant="primary"
+              size="sm"
+              isLoading={createMutation.isPending}
+            >
+              Emitir guía
             </Button>
           </div>
         </form>
       </Modal>
 
-      {/* Printable Waybill Label Modal */}
+      {/* Modal de Comprobante / Etiqueta generada */}
       {createdGuiaModal && (
         <Modal
           isOpen={true}
           onClose={() => setCreatedGuiaModal(null)}
-          title={`Etiqueta de Envío — Guía #${createdGuiaModal.numeroGuia}`}
-          maxWidth="lg"
+          title={`Comprobante de Guía #${createdGuiaModal.numeroGuia}`}
+          description="Comprobante generado listo para impresión."
+          maxWidth="720"
         >
-          <div className="space-y-6">
-            <div className="p-6 bg-white text-slate-900 rounded-2xl shadow-xl font-mono text-xs border border-slate-300 space-y-4 print-only">
-              <div className="flex items-center justify-between border-b-2 border-slate-900 pb-3">
+          <div className="space-y-4 text-xs font-mono">
+            <div className="p-4 rounded-lg border border-slate-700 bg-slate-900/80 space-y-2 text-slate-200">
+              <div className="flex justify-between border-b border-slate-800 pb-2">
+                <span className="font-bold text-amber-500">UMG Express</span>
+                <span>Guía #{createdGuiaModal.numeroGuia}</span>
+              </div>
+              <div className="grid grid-cols-2 gap-2 text-[11px]">
                 <div>
-                  <h3 className="text-xl font-black tracking-tight">UMG EXPRESS</h3>
-                  <p className="text-[10px] uppercase font-bold text-slate-600">Comprobante Oficial de Flete</p>
+                  <span className="text-slate-400 block">Remitente:</span>
+                  <span>{clientesMap.get(createdGuiaModal.idClienteRemitente) || `#${createdGuiaModal.idClienteRemitente}`}</span>
                 </div>
-                <div className="text-right">
-                  <div className="text-2xl font-black">#{createdGuiaModal.numeroGuia}</div>
-                  <span className="text-[10px] font-bold px-2 py-0.5 bg-slate-200 rounded">EN BODEGA</span>
+                <div>
+                  <span className="text-slate-400 block">Destinatario:</span>
+                  <span>{clientesMap.get(createdGuiaModal.idClienteDestinatario) || `#${createdGuiaModal.idClienteDestinatario}`}</span>
                 </div>
               </div>
-
-              <div className="grid grid-cols-2 gap-4">
+              <div className="pt-2 border-t border-slate-800 grid grid-cols-3 gap-2 text-[11px] tabular-nums">
                 <div>
-                  <span className="font-bold text-[10px] text-slate-500 block">REMITENTE</span>
-                  <div className="font-bold text-sm">
-                    {clientesMap.get(createdGuiaModal.idClienteRemitente) || `ID #${createdGuiaModal.idClienteRemitente}`}
-                  </div>
+                  <span className="text-slate-400 block">Peso facturable:</span>
+                  <span>{formatWeight(createdGuiaModal.pesoFacturableKg)}</span>
                 </div>
                 <div>
-                  <span className="font-bold text-[10px] text-slate-500 block">DESTINATARIO</span>
-                  <div className="font-bold text-sm">
-                    {clientesMap.get(createdGuiaModal.idClienteDestinatario) || `ID #${createdGuiaModal.idClienteDestinatario}`}
-                  </div>
-                </div>
-              </div>
-
-              <div className="border-t border-b border-dashed border-slate-300 py-3 grid grid-cols-3 gap-2 text-center">
-                <div>
-                  <span className="text-[10px] text-slate-500 block">PESO REAL</span>
-                  <span className="font-bold text-sm">{formatWeight(createdGuiaModal.pesoRealKg)}</span>
+                  <span className="text-slate-400 block">Dimensiones:</span>
+                  <span>{createdGuiaModal.largoCm}×{createdGuiaModal.anchoCm}×{createdGuiaModal.altoCm} cm</span>
                 </div>
                 <div>
-                  <span className="text-[10px] text-slate-500 block">VOLUMÉTRICO</span>
-                  <span className="font-bold text-sm">{formatWeight(createdGuiaModal.pesoVolumetricoKg)}</span>
-                </div>
-                <div>
-                  <span className="text-[10px] text-slate-500 block">FACTURABLE</span>
-                  <span className="font-black text-sm text-slate-950">{formatWeight(createdGuiaModal.pesoFacturableKg)}</span>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between pt-2">
-                <div>
-                  <span className="text-[10px] text-slate-500 block">DIMENSIONES</span>
-                  <span className="font-bold">{createdGuiaModal.largoCm} × {createdGuiaModal.anchoCm} × {createdGuiaModal.altoCm} cm</span>
-                </div>
-                <div className="text-right">
-                  <span className="text-[10px] text-slate-500 block">IMPORTE TOTAL</span>
-                  <span className="text-xl font-black text-slate-950">{formatCurrency(createdGuiaModal.costoTotal)}</span>
+                  <span className="text-slate-400 block">Total flete:</span>
+                  <span className="font-bold text-slate-100">{formatCurrency(createdGuiaModal.costoTotal)}</span>
                 </div>
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-3 no-print">
+            <div className="flex justify-end gap-2">
               <Button
                 variant="outline"
+                size="sm"
                 onClick={() => setCreatedGuiaModal(null)}
               >
                 Cerrar
               </Button>
               <Button
                 variant="primary"
-                leftIcon={<Printer className="w-4 h-4" />}
+                size="sm"
                 onClick={() => window.print()}
+                leftIcon={<Printer className="w-3.5 h-3.5" />}
               >
-                Imprimir Etiqueta
+                Imprimir comprobante
               </Button>
             </div>
           </div>
