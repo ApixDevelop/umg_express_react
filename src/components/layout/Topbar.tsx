@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router";
 import { useAuthStore } from "@/store/authStore";
-import { Menu, Search } from "lucide-react";
+import { useThemeStore } from "@/store/themeStore";
+import { Menu, Search, Sun, Moon, Monitor, Command } from "lucide-react";
 
 interface TopbarProps {
   onOpenSidebar: () => void;
@@ -9,22 +10,24 @@ interface TopbarProps {
 
 const routeTitles: Record<string, string> = {
   "/": "Dashboard",
-  "/rastreo": "Rastreo de guía",
-  "/guias": "Emisión de guías",
-  "/despacho": "Asignación de carga",
-  "/manifiesto": "Manifiesto de carga",
-  "/liquidacion": "Liquidación financiera",
-  "/catalogos/sucursales": "Sucursales",
-  "/catalogos/clientes": "Clientes",
-  "/catalogos/rutas": "Rutas",
-  "/catalogos/vehiculos": "Vehículos",
-  "/catalogos/pilotos": "Pilotos",
-  "/catalogos/tarifas": "Tarifas",
-  "/catalogos/usuarios": "Usuarios",
+  "/dashboard": "Dashboard Ejecutivo",
+  "/rastreo": "Rastreo de Guía",
+  "/guias": "Emisión de Guías",
+  "/despacho": "Asignación y Despacho",
+  "/manifiesto": "Manifiesto de Carga",
+  "/liquidacion": "Liquidación Financiera",
+  "/catalogos/sucursales": "Mantenimiento de Sucursales",
+  "/catalogos/clientes": "Mantenimiento de Clientes",
+  "/catalogos/rutas": "Mantenimiento de Rutas",
+  "/catalogos/vehiculos": "Mantenimiento de Vehículos",
+  "/catalogos/pilotos": "Mantenimiento de Pilotos",
+  "/catalogos/tarifas": "Mantenimiento de Tarifas",
+  "/catalogos/usuarios": "Mantenimiento de Usuarios",
 };
 
 export function Topbar({ onOpenSidebar }: TopbarProps) {
   const { user } = useAuthStore();
+  const { theme, resolvedTheme, toggleTheme } = useThemeStore();
   const location = useLocation();
   const navigate = useNavigate();
   const [quickSearch, setQuickSearch] = useState("");
@@ -43,13 +46,13 @@ export function Topbar({ onOpenSidebar }: TopbarProps) {
     : user?.username?.substring(0, 2).toUpperCase() || "US";
 
   return (
-    <header className="sticky top-0 h-12 bg-bg border-b border-border z-30 flex items-center justify-between px-4 sm:px-6 w-full shrink-0">
+    <header className="sticky top-0 h-12 bg-bg/95 backdrop-blur-[4px] border-b border-border z-30 flex items-center justify-between px-4 sm:px-6 w-full shrink-0 transition-colors duration-200">
       {/* Left: Mobile toggle + Breadcrumb */}
       <div className="flex items-center gap-3">
         <button
           onClick={onOpenSidebar}
-          className="p-1 rounded text-text-muted hover:text-text hover:bg-surface-hover lg:hidden"
-          aria-label="Abrir menú"
+          className="p-1 rounded text-text-muted hover:text-text hover:bg-surface-hover lg:hidden cursor-pointer active:scale-[0.97] transition-all"
+          aria-label="Abrir menú lateral"
         >
           <Menu className="w-4 h-4" />
         </button>
@@ -57,12 +60,12 @@ export function Topbar({ onOpenSidebar }: TopbarProps) {
         <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-xs">
           <span className="text-text-muted">Inicio</span>
           <span className="text-text-faint">/</span>
-          <span className="text-text font-medium">{currentTitle}</span>
+          <span className="text-text font-medium tracking-tight">{currentTitle}</span>
         </nav>
       </div>
 
-      {/* Right: Quick search & User */}
-      <div className="flex items-center gap-3">
+      {/* Right: Quick search, Theme toggle & User */}
+      <div className="flex items-center gap-2.5 sm:gap-3">
         {/* Quick Guide Search */}
         <form onSubmit={handleQuickSearch} className="hidden sm:block">
           <div className="relative">
@@ -71,15 +74,42 @@ export function Topbar({ onOpenSidebar }: TopbarProps) {
               type="text"
               value={quickSearch}
               onChange={(e) => setQuickSearch(e.target.value)}
-              placeholder="Buscar guía por número"
-              className="w-48 lg:w-56 h-8 bg-surface text-text placeholder-text-muted text-xs rounded-control border border-border-input pl-8 pr-2.5 focus:outline-none focus:ring-2 focus:ring-accent"
+              placeholder="Buscar guía por número..."
+              className="w-48 lg:w-56 h-8 bg-surface text-text placeholder:text-text-faint text-xs rounded-control border border-border-input pl-8 pr-7 focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/40 transition-all tabular-nums"
             />
+            <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-[10px] text-text-faint flex items-center">
+              ↵
+            </div>
           </div>
         </form>
 
+        {/* Theme Mode Toggle Button */}
+        <button
+          onClick={toggleTheme}
+          title={`Tema actual: ${theme === "system" ? "Automático (Sistema)" : theme === "dark" ? "Oscuro" : "Claro"}. Clic para cambiar.`}
+          className="h-8 px-2 rounded-control border border-border-input bg-surface text-text hover:bg-surface-hover flex items-center gap-1.5 text-xs cursor-pointer active:scale-[0.97] transition-all duration-150"
+        >
+          {theme === "system" ? (
+            <>
+              <Monitor className="w-3.5 h-3.5 text-accent shrink-0" />
+              <span className="hidden md:inline text-[11px] text-text-muted">Auto</span>
+            </>
+          ) : resolvedTheme === "dark" ? (
+            <>
+              <Moon className="w-3.5 h-3.5 text-accent shrink-0" />
+              <span className="hidden md:inline text-[11px] text-text-muted">Oscuro</span>
+            </>
+          ) : (
+            <>
+              <Sun className="w-3.5 h-3.5 text-accent shrink-0" />
+              <span className="hidden md:inline text-[11px] text-text-muted">Claro</span>
+            </>
+          )}
+        </button>
+
         {/* User preview */}
         <div className="flex items-center gap-2 pl-2 border-l border-border">
-          <div className="w-6 h-6 rounded-full bg-surface-hover border border-border flex items-center justify-center text-[10px] font-medium text-text">
+          <div className="w-7 h-7 rounded-full bg-surface-hover border border-border flex items-center justify-center text-[10px] font-semibold text-text">
             {initials}
           </div>
           <div className="hidden md:block text-left">

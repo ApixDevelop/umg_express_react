@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "sonner";
 import { AppRoutes } from "@/routes/AppRoutes";
+import { useThemeStore } from "@/store/themeStore";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -14,19 +15,25 @@ const queryClient = new QueryClient({
 });
 
 export default function App() {
+  const { resolvedTheme, initTheme } = useThemeStore();
+
+  useEffect(() => {
+    initTheme();
+  }, [initTheme]);
+
   return (
     <QueryClientProvider client={queryClient}>
       <Toaster
         richColors
         position="bottom-right"
-        theme="dark"
+        theme={resolvedTheme}
         closeButton
         toastOptions={{
           className: "font-sans text-[13px] border border-border bg-surface text-text shadow-lg",
           style: {
-            background: "#18191d",
-            border: "1px solid #2a2c33",
-            color: "#ededf0",
+            background: "var(--surface)",
+            border: "1px solid var(--border)",
+            color: "var(--text)",
           },
         }}
       />
