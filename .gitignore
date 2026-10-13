@@ -22,3 +22,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Binaries and local CLI engines
+*.exe
+.agents/**/bin/
+.codex/
