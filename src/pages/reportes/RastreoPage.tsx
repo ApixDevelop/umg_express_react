@@ -4,7 +4,7 @@ import { reportesApi } from "@/api/reportes";
 import { Button } from "@/components/ui/Button";
 import { StatusBadge } from "@/components/ui/Badge";
 import { formatCurrency, formatWeight } from "@/lib/utils";
-import { Search } from "lucide-react";
+import { Search, Copy, Check } from "lucide-react";
 import { toast } from "sonner";
 import type { RastreoInfo } from "@/types";
 
@@ -15,6 +15,7 @@ export function RastreoPage() {
   const [data, setData] = useState<RastreoInfo | null>(null);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const fetchRastreo = async (num: number) => {
     if (!num || isNaN(num)) return;
@@ -47,11 +48,19 @@ export function RastreoPage() {
     fetchRastreo(Number(guiaNumber));
   };
 
+  const handleCopyGuia = () => {
+    if (!data) return;
+    navigator.clipboard.writeText(data.numeroGuia.toString());
+    setCopied(true);
+    toast.success(`Guía #${data.numeroGuia} copiada al portapapeles`);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   return (
     <div className="space-y-4">
       {/* Cabecera */}
       <div className="flex items-center justify-between">
-        <h1 className="text-[20px] font-semibold text-text">Rastreo de guía</h1>
+        <h1 className="text-[20px] font-semibold text-text tracking-tight">Rastreo de guía</h1>
         {data && (
           <Button
             variant="secondary"
@@ -73,8 +82,8 @@ export function RastreoPage() {
               type="number"
               value={guiaNumber}
               onChange={(e) => setGuiaNumber(e.target.value)}
-              placeholder="Número de guía"
-              className="w-full h-8 bg-surface text-text text-[13px] rounded-control border border-border-input pl-8 pr-2.5 focus:outline-none focus:ring-2 focus:ring-accent tabular-nums"
+              placeholder="Número de guía (ej. 1001)"
+              className="w-full h-8 bg-surface text-text text-[13px] rounded-control border border-border-input pl-8 pr-2.5 focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/50 tabular-nums transition-colors"
             />
           </div>
           <Button
@@ -90,7 +99,7 @@ export function RastreoPage() {
 
       {/* Resultado */}
       {data ? (
-        <div className="space-y-4">
+        <div className="space-y-4 animate-in fade-in duration-200">
           {/* Historial de estados directo */}
           <div className="rounded-panel border border-border bg-surface p-4">
             <div className="flex items-center justify-between pb-3 border-b border-border">
@@ -99,6 +108,13 @@ export function RastreoPage() {
                 <span className="text-[16px] font-semibold text-text tabular-nums">
                   #{data.numeroGuia}
                 </span>
+                <button
+                  onClick={handleCopyGuia}
+                  title="Copiar número de guía"
+                  className="p-1 rounded text-text-muted hover:text-text hover:bg-surface-hover transition-colors cursor-pointer"
+                >
+                  {copied ? <Check className="w-3.5 h-3.5 text-ok" /> : <Copy className="w-3.5 h-3.5" />}
+                </button>
                 <StatusBadge status={data.estado} />
               </div>
               <div className="text-[13px] text-text tabular-nums">
@@ -108,7 +124,7 @@ export function RastreoPage() {
 
             <div className="pt-3">
               <div className="text-[12px] text-text-muted mb-2">Estados del envío</div>
-              <div className="space-y-2 border-l border-border ml-2 pl-3 text-[13px]">
+              <div className="space-y-2.5 border-l border-border ml-2 pl-3 text-[13px]">
                 <div className="relative">
                   <div className="absolute -left-[17px] top-1.5 w-1.5 h-1.5 rounded-full bg-ok" />
                   <p className="font-medium text-text">En bodega</p>
@@ -203,7 +219,7 @@ export function RastreoPage() {
           </div>
         </div>
       ) : searched && !loading ? (
-        <div className="rounded-panel border border-border bg-surface p-6 text-center text-[13px] text-text-muted">
+        <div className="rounded-panel border border-border bg-surface p-6 text-center text-[13px] text-text-muted animate-in fade-in duration-150">
           No se encontró la guía #{guiaNumber}. Verifique el número e intente de nuevo.
         </div>
       ) : null}

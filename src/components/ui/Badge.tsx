@@ -12,6 +12,7 @@ export function StatusBadge({ status, className }: StatusBadgeProps) {
   let dotColor = "bg-text-muted";
   let textColor = "text-text-muted";
   let label = status;
+  let isLive = false;
 
   if (norm === "creada" || norm === "en bodega") {
     dotColor = "bg-text-muted";
@@ -21,10 +22,12 @@ export function StatusBadge({ status, className }: StatusBadgeProps) {
     dotColor = "bg-info";
     textColor = "text-info";
     label = "En tránsito";
+    isLive = true;
   } else if (norm === "entregada" || norm === "disponible" || norm === "activo") {
     dotColor = "bg-ok";
     textColor = "text-ok";
     label = norm === "disponible" ? "Disponible" : norm === "activo" ? "Activo" : "Entregada";
+    if (norm === "disponible") isLive = true;
   } else if (norm === "en taller" || norm === "cancelada" || norm === "incidencia" || norm === "baja") {
     dotColor = "bg-danger";
     textColor = "text-danger";
@@ -37,7 +40,12 @@ export function StatusBadge({ status, className }: StatusBadgeProps) {
 
   return (
     <span className={cn("inline-flex items-center gap-1.5 text-[13px] font-normal", textColor, className)}>
-      <span className={cn("w-1.5 h-1.5 rounded-full shrink-0", dotColor)} />
+      <span className="relative flex h-2 w-2 items-center justify-center shrink-0">
+        {isLive && (
+          <span className={cn("animate-ping absolute inline-flex h-full w-full rounded-full opacity-60", dotColor)} />
+        )}
+        <span className={cn("relative inline-flex rounded-full h-1.5 w-1.5", dotColor)} />
+      </span>
       <span>{label}</span>
     </span>
   );

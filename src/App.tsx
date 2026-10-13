@@ -18,10 +18,16 @@ export default function App() {
     <QueryClientProvider client={queryClient}>
       <Toaster
         richColors
-        position="top-right"
+        position="bottom-right"
         theme="dark"
+        closeButton
         toastOptions={{
-          className: "font-sans text-xs",
+          className: "font-sans text-[13px] border border-border bg-surface text-text shadow-lg",
+          style: {
+            background: "#18191d",
+            border: "1px solid #2a2c33",
+            color: "#ededf0",
+          },
         }}
       />
       <AppRoutes />

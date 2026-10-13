@@ -46,31 +46,38 @@ export function Modal({
   }[maxWidth] || "max-w-[720px]";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
-      {/* Backdrop */}
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-in fade-in duration-200">
+      {/* Backdrop with subtle blur */}
       <div
-        className="fixed inset-0 bg-black/60 transition-opacity duration-150"
+        className="fixed inset-0 bg-black/65 backdrop-blur-[2px] transition-opacity duration-200"
         onClick={onClose}
       />
 
-      {/* Dialog content */}
+      {/* Dialog content with entry physics */}
       <div
         className={cn(
-          "relative w-full rounded-panel border border-border bg-surface shadow-[0_4px_16px_rgba(0,0,0,0.25)] z-10 overflow-hidden",
+          "relative w-full rounded-panel border border-border bg-surface shadow-[0_8px_32px_rgba(0,0,0,0.5)] z-10 overflow-hidden",
+          "transform transition-all duration-200 ease-out animate-in zoom-in-95",
           maxW
         )}
       >
         <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-surface">
           <div>
-            <h3 className="text-[16px] font-semibold text-text">{title}</h3>
+            <h3 className="text-[15px] font-semibold text-text tracking-tight">{title}</h3>
             {description && <p className="text-[12px] text-text-muted mt-0.5">{description}</p>}
           </div>
-          <button
-            onClick={onClose}
-            className="p-1 rounded text-text-muted hover:text-text hover:bg-surface-hover transition-colors cursor-pointer"
-          >
-            <X className="w-4 h-4" />
-          </button>
+          <div className="flex items-center gap-1.5">
+            <span className="hidden sm:inline-block text-[10px] text-text-faint px-1.5 py-0.5 rounded border border-border bg-bg/50">
+              ESC
+            </span>
+            <button
+              onClick={onClose}
+              title="Cerrar modal (Esc)"
+              className="p-1 rounded text-text-muted hover:text-text hover:bg-surface-hover hover:rotate-90 transition-all duration-150 cursor-pointer"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
         </div>
         <div className="p-4 max-h-[80vh] overflow-y-auto">{children}</div>
       </div>

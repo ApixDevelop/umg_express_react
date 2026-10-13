@@ -31,11 +31,12 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
             ref={ref}
             id={inputId}
             className={cn(
-              "w-full h-[34px] bg-surface text-text placeholder-text-muted text-[13px] rounded-control border border-border-input px-3 transition-colors duration-150",
-              "focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-1 focus:ring-offset-bg",
+              "w-full h-[34px] bg-surface text-text placeholder:text-text-faint text-[13px] rounded-control border border-border-input px-3",
+              "transition-all duration-150 ease-out",
+              "focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/50 focus:bg-surface-hover/30",
               leftIcon && "pl-8",
               rightIcon && "pr-8",
-              error && "border-danger focus:ring-danger",
+              error && "border-danger focus:border-danger focus:ring-danger/40",
               className
             )}
             {...props}
@@ -46,7 +47,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
             </div>
           )}
         </div>
-        {error && <p className="text-[12px] text-danger">{error}</p>}
+        {error && <p className="text-[12px] text-danger animate-in fade-in duration-150">{error}</p>}
         {helperText && !error && <p className="text-[12px] text-text-muted">{helperText}</p>}
       </div>
     );
