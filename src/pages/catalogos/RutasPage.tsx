@@ -6,7 +6,8 @@ import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Modal } from "@/components/ui/Modal";
 import { formatCurrency } from "@/lib/utils";
-import { Edit2, Trash2 } from "lucide-react";
+import { Edit2, Trash2, Plus, Route, ArrowRight } from "lucide-react";
+import { Badge } from "@/components/ui/Badge";
 import { toast } from "sonner";
 import type { Ruta } from "@/types";
 
@@ -108,7 +109,13 @@ export function RutasPage() {
     <div className="space-y-4">
       {/* Cabecera */}
       <div className="flex items-center justify-between">
-        <h1 className="text-[20px] font-semibold text-text">Rutas de distribución</h1>
+        <div className="flex items-center gap-2">
+          <h1 className="text-[20px] font-semibold text-text tracking-tight">Rutas de Distribución</h1>
+          <Badge variant="default">{rutas.length} tramos activos</Badge>
+        </div>
+        <p className="text-[12px] text-text-muted mt-0.5">
+          Conexiones logísticas interdepartamentales y tarifas base por trayecto.
+        </p>
         <Button
           variant="primary"
           size="sm"
@@ -161,14 +168,14 @@ export function RutasPage() {
                       <div className="flex items-center justify-end gap-1">
                         <button
                           onClick={() => openEdit(r)}
-                          className="p-1 text-text-muted hover:text-text hover:bg-surface-hover rounded transition-colors cursor-pointer"
+                          className="p-1 text-text-muted hover:text-text hover:bg-surface-hover rounded transition-colors cursor-pointer active:scale-[0.92]"
                           title="Editar"
                         >
                           <Edit2 className="w-3.5 h-3.5" />
                         </button>
                         <button
                           onClick={() => handleDelete(r.id)}
-                          className="p-1 text-text-muted hover:text-danger hover:bg-danger/10 rounded transition-colors cursor-pointer"
+                          className="p-1 text-text-muted hover:text-danger hover:bg-danger/10 rounded transition-colors cursor-pointer active:scale-[0.92]"
                           title="Eliminar"
                         >
                           <Trash2 className="w-3.5 h-3.5" />

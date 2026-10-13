@@ -4,7 +4,8 @@ import { pilotosApi } from "@/api/catalogos";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Modal } from "@/components/ui/Modal";
-import { Edit2, Trash2, Search } from "lucide-react";
+import { Edit2, Trash2, Search, Plus, UserCheck } from "lucide-react";
+import { Badge } from "@/components/ui/Badge";
 import { toast } from "sonner";
 import type { Piloto } from "@/types";
 
@@ -88,9 +89,16 @@ export function PilotosPage() {
     <div className="space-y-4">
       {/* Cabecera */}
       <div className="flex items-center justify-between">
-        <h1 className="text-[20px] font-semibold text-text">Pilotos</h1>
-        <Button variant="primary" size="sm" onClick={openCreate}>
-          Nuevo piloto
+        <div className="flex items-center gap-2">
+          <h1 className="text-[20px] font-semibold text-text tracking-tight">Plantilla de Pilotos</h1>
+          <Badge variant="default">{pilotos.length} activos</Badge>
+        </div>
+        <p className="text-[12px] text-text-muted mt-0.5">
+          Conductores certificados con licencia profesional para transporte de carga.
+        </p>
+        <Button variant="primary" size="sm" onClick={openCreate} className="gap-1.5 active:scale-[0.97]">
+          <Plus className="w-3.5 h-3.5" />
+          <span>Nuevo piloto</span>
         </Button>
       </div>
 
@@ -137,14 +145,14 @@ export function PilotosPage() {
                       <div className="flex items-center justify-end gap-1">
                         <button
                           onClick={() => openEdit(p)}
-                          className="p-1 text-text-muted hover:text-text hover:bg-surface-hover rounded transition-colors cursor-pointer"
+                          className="p-1 text-text-muted hover:text-text hover:bg-surface-hover rounded transition-colors cursor-pointer active:scale-[0.92]"
                           title="Editar"
                         >
                           <Edit2 className="w-3.5 h-3.5" />
                         </button>
                         <button
                           onClick={() => handleDelete(p.id, p.nombre)}
-                          className="p-1 text-text-muted hover:text-danger hover:bg-danger/10 rounded transition-colors cursor-pointer"
+                          className="p-1 text-text-muted hover:text-danger hover:bg-danger/10 rounded transition-colors cursor-pointer active:scale-[0.92]"
                           title="Eliminar"
                         >
                           <Trash2 className="w-3.5 h-3.5" />

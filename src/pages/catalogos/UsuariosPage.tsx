@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { toast } from "sonner";
+import { ShieldCheck, UserCheck, KeyRound } from "lucide-react";
+import { Badge } from "@/components/ui/Badge";
 import type { UserRole } from "@/types";
 
 export function UsuariosPage() {
@@ -39,9 +41,12 @@ export function UsuariosPage() {
     <div className="space-y-4 max-w-[720px]">
       {/* Cabecera */}
       <div>
-        <h1 className="text-[20px] font-semibold text-text">Usuarios</h1>
+        <div className="flex items-center gap-2">
+          <h1 className="text-[20px] font-semibold text-text tracking-tight">Control de Accesos y Usuarios</h1>
+          <Badge variant="default">Seguridad RBAC</Badge>
+        </div>
         <p className="text-[12px] text-text-muted mt-0.5">
-          Alta de credenciales y asignación de roles de acceso al sistema.
+          Alta de credenciales, roles de privilegio y control de acceso criptográfico.
         </p>
       </div>
 
@@ -93,8 +98,10 @@ export function UsuariosPage() {
               variant="primary"
               size="sm"
               isLoading={isLoading}
+              className="gap-1.5 active:scale-[0.97] shadow-sm"
             >
-              Registrar usuario
+              <ShieldCheck className="w-3.5 h-3.5" />
+              <span>Registrar usuario</span>
             </Button>
           </div>
         </form>
