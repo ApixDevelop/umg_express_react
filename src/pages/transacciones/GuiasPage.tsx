@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { StatusBadge } from "@/components/ui/Badge";
 import { Modal } from "@/components/ui/Modal";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { formatCurrency, formatWeight, cn } from "@/lib/utils";
 import {
   calcularPesoVolumetrico,
@@ -15,9 +16,9 @@ import {
   calcularPesoFacturable,
   calcularCostoEstimado,
 } from "@/lib/calculos";
-import { Search, Printer, Plus, Package, ArrowRight, Scale } from "lucide-react";
+import { Search, Printer, Plus, Package, ArrowRight, Scale, CheckCircle2, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
-import type { Guia } from "@/types";
+import type { Guia, EstadoGuia } from "@/types";
 
 export function GuiasPage() {
   const queryClient = useQueryClient();
@@ -25,6 +26,36 @@ export function GuiasPage() {
   const [filterEstado, setFilterEstado] = useState<string>("TODOS");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [createdGuiaModal, setCreatedGuiaModal] = useState<Guia | null>(null);
+  const [guiaToDeliver, setGuiaToDeliver] = useState<Guia | null>(null);
+  const [guiaToEditStatus, setGuiaToEditStatus] = useState<Guia | null>(null);
+  const [selectedNewEstado, setSelectedNewEstado] = useState<EstadoGuia>("Entregada");
+
+  // Mutación: Marcar como Entregada directamente
+  const marcarEntregadaMutation = useMutation({
+    mutationFn: (numeroGuia: number) => guiasApi.marcarEntregada(numeroGuia),
+    onSuccess: (guia) => {
+      queryClient.invalidateQueries({ queryKey: ["guias"] });
+      toast.success(`Guía #${guia.numeroGuia} marcada como Entregada exitosamente`);
+      setGuiaToDeliver(null);
+    },
+    onError: (err: any) => {
+      toast.error(err.response?.data?.mensaje || err.message || "Error al entregar guía");
+    },
+  });
+
+  // Mutación: Actualizar estado operativo
+  const actualizarEstadoMutation = useMutation({
+    mutationFn: ({ numeroGuia, estado }: { numeroGuia: number; estado: EstadoGuia }) =>
+      guiasApi.actualizarEstado(numeroGuia, estado),
+    onSuccess: (guia) => {
+      queryClient.invalidateQueries({ queryKey: ["guias"] });
+      toast.success(`Guía #${guia.numeroGuia} actualizada a '${guia.estado}'`);
+      setGuiaToEditStatus(null);
+    },
+    onError: (err: any) => {
+      toast.error(err.response?.data?.mensaje || err.message || "Error al actualizar estado");
+    },
+  });
 
   // Form state
   const [idRemitente, setIdRemitente] = useState<number>(0);
@@ -300,17 +331,36 @@ export function GuiasPage() {
                         <div className="flex items-center justify-end gap-1 opacity-80 group-hover:opacity-100 transition-opacity">
                           <Link
                             to={"/rastreo?no=" + g.numeroGuia}
-                            title="Rastrear guía"
+                            title="Rastrear trazabilidad"
                             className="p-1 rounded text-text-muted hover:text-text hover:bg-surface-hover transition-colors"
                           >
                             <ArrowRight className="w-3.5 h-3.5" />
                           </Link>
                           <button
                             onClick={() => setCreatedGuiaModal(g)}
-                            title="Ver e imprimir comprobante"
+                            title="Ver e imprimir comprobante oficial"
                             className="p-1 rounded text-text-muted hover:text-accent hover:bg-surface-hover transition-colors cursor-pointer"
                           >
                             <Printer className="w-3.5 h-3.5" />
+                          </button>
+                          {g.estado !== "Entregada" && (
+                            <button
+                              onClick={() => setGuiaToDeliver(g)}
+                              title="Marcar como entregada"
+                              className="p-1 rounded text-text-muted hover:text-success hover:bg-success/15 transition-colors cursor-pointer"
+                            >
+                              <CheckCircle2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                          <button
+                            onClick={() => {
+                              setGuiaToEditStatus(g);
+                              setSelectedNewEstado(g.estado as EstadoGuia);
+                            }}
+                            title="Cambiar estado operativo"
+                            className="p-1 rounded text-text-muted hover:text-accent hover:bg-surface-hover transition-colors cursor-pointer"
+                          >
+                            <RefreshCw className="w-3.5 h-3.5" />
                           </button>
                         </div>
                       </td>
@@ -500,7 +550,83 @@ export function GuiasPage() {
       </Modal>
       </div>
 
-      {/* Modal de Comprobante Oficial Imprimible */}
+      {/* Modal de Actualización de Estado Operativo */}
+      {guiaToEditStatus && (
+        <Modal
+          isOpen={true}
+          onClose={() => setGuiaToEditStatus(null)}
+          title={`Actualizar Estado - Guía #${guiaToEditStatus.numeroGuia}`}
+          description="Transición de ciclo operativo en almacén y entrega."
+          maxWidth="sm"
+        >
+          <div className="space-y-4 text-[13px]">
+            <div className="p-3 rounded bg-surface border border-border space-y-1">
+              <span className="text-[11px] text-text-muted font-semibold uppercase">Estado actual:</span>
+              <div className="flex items-center gap-2">
+                <StatusBadge status={guiaToEditStatus.estado} />
+                <span className="text-xs text-text-muted font-mono">
+                  {clientesMap.get(guiaToEditStatus.idClienteDestinatario) || ("Cliente #" + guiaToEditStatus.idClienteDestinatario)}
+                </span>
+              </div>
+            </div>
+
+            <Select
+              label="Seleccionar nuevo estado"
+              value={selectedNewEstado}
+              onChange={(e) => setSelectedNewEstado(e.target.value as EstadoGuia)}
+            >
+              <option value="Creada">Creada (En bodega origen)</option>
+              <option value="Despachada">Despachada (En tránsito vehicular)</option>
+              <option value="Entregada">Entregada (Conforme al cliente)</option>
+            </Select>
+
+            <div className="flex justify-end gap-2 pt-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setGuiaToEditStatus(null)}
+              >
+                Cancelar
+              </Button>
+              <Button
+                variant="primary"
+                size="sm"
+                isLoading={actualizarEstadoMutation.isPending}
+                onClick={() => {
+                  if (guiaToEditStatus) {
+                    actualizarEstadoMutation.mutate({
+                      numeroGuia: guiaToEditStatus.numeroGuia,
+                      estado: selectedNewEstado,
+                    });
+                  }
+                }}
+              >
+                Actualizar estado
+              </Button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* ConfirmDialog de Entrega Rápida */}
+      <ConfirmDialog
+        isOpen={!!guiaToDeliver}
+        onClose={() => setGuiaToDeliver(null)}
+        onConfirm={() => {
+          if (guiaToDeliver) {
+            marcarEntregadaMutation.mutate(guiaToDeliver.numeroGuia);
+          }
+        }}
+        variant="primary"
+        title="Confirmar Entrega de Encomienda"
+        message={`¿Desea marcar formalmente la guía #${guiaToDeliver?.numeroGuia} como ENTREGADA?`}
+        description="Esta acción actualizará la trazabilidad física a entregada con recepción conforme del cliente destinatario."
+        confirmText="Confirmar Entrega"
+        cancelText="Volver"
+        isLoading={marcarEntregadaMutation.isPending}
+      />
+
+            {/* Modal de Comprobante Oficial Imprimible */}
       {createdGuiaModal && (() => {
         const clienteRemitente = clientes.find((c) => c.id === createdGuiaModal.idClienteRemitente);
         const clienteDestinatario = clientes.find((c) => c.id === createdGuiaModal.idClienteDestinatario);
