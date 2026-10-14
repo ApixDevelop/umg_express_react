@@ -157,15 +157,96 @@ select option {
   }
 }
 
+
+/* =========================================================================
+   ESTILOS OFICIALES PARA IMPRESIÓN DOCUMENTAL (ALTA DEFINICIÓN)
+   ========================================================================= */
 @media print {
-  body {
+  @page {
+    size: letter portrait;
+    margin: 12mm 15mm;
+  }
+
+  html, body {
     background: #ffffff !important;
     color: #000000 !important;
+    font-size: 11pt !important;
+    line-height: 1.3 !important;
+    width: 100% !important;
+    height: auto !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: visible !important;
   }
-  .no-print {
+
+  /* Ocultar toda la interfaz de la aplicación web */
+  nav,
+  aside,
+  header,
+  footer,
+  [data-sonner-toaster],
+  [data-sonner-toast],
+  .toaster,
+  .no-print,
+  button,
+  input,
+  select,
+  .theme-toggle {
     display: none !important;
   }
+
+  /* Anular desplazamientos, paddings y flexbox de la interfaz web */
+  div, main, section {
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  main {
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    display: block !important;
+  }
+
+  /* Documento oficial a 100% ancho */
+  .official-document {
+    display: block !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  /* Elementos visibles solo al imprimir */
   .print-only {
     display: block !important;
+  }
+
+  /* Forzar texto negro en tablas y bordes finos nítidos para impresoras láser */
+  table {
+    border-collapse: collapse !important;
+    width: 100% !important;
+    color: #000000 !important;
+  }
+
+  th, td {
+    border: 1px solid #000000 !important;
+    padding: 4px 6px !important;
+    color: #000000 !important;
+  }
+
+  th {
+    background-color: #f0f0f0 !important;
+    font-weight: bold !important;
+  }
+
+  /* Evitar saltos de página dentro de bloques y firmas */
+  .avoid-break {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
   }
 }

@@ -95,6 +95,31 @@ export function ManifiestoPage() {
 
   return (
     <div className="space-y-4">
+            {/* Encabezado Institucional para Impresión Oficial */}
+      <div className="hidden print:block border-b-2 border-black pb-4 mb-4">
+        <div className="flex items-start justify-between">
+          <div>
+            <h2 className="text-[16pt] font-black text-black leading-none">
+              UMG EXPRESS · MANIFIESTO OFICIAL DE CARGA
+            </h2>
+            <p className="text-[9pt] text-gray-700 tracking-wider uppercase font-semibold mt-1">
+              Hoja de Ruta, Despacho y Cadena de Custodia Terrestre
+            </p>
+            <p className="text-[8.5pt] text-gray-600">
+              República de Guatemala, C.A. · Transporte Pesado y Encomiendas
+            </p>
+          </div>
+          <div className="text-right">
+            <div className="border border-black px-3 py-1 font-mono font-bold text-[12pt] text-black bg-gray-50">
+              MANIFIESTO #{manifiesto?.vehiculo?.id ? `${manifiesto.vehiculo.id}-${new Date().getFullYear()}` : "CARGA"}
+            </div>
+            <p className="text-[8.5pt] text-gray-600 mt-1">
+              Fecha de emisión: {new Date().toLocaleDateString("es-GT", { year: "numeric", month: "long", day: "numeric" })}
+            </p>
+          </div>
+        </div>
+      </div>
+
       {/* Cabecera Principal */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1 border-b border-border no-print">
         <div>

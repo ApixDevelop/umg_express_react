@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { StatusBadge } from "@/components/ui/Badge";
 import { Modal } from "@/components/ui/Modal";
-import { formatCurrency, formatWeight } from "@/lib/utils";
+import { formatCurrency, formatWeight, cn } from "@/lib/utils";
 import {
   calcularPesoVolumetrico,
   calcularVolumenM3,
@@ -168,7 +168,7 @@ export function GuiasPage() {
   };
 
   return (
-    <div className="space-y-4">
+    <div className={cn("space-y-4", createdGuiaModal && "print:hidden")}>
       {/* Cabecera y botón primario */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
@@ -499,74 +499,215 @@ export function GuiasPage() {
       </Modal>
 
       {/* Modal de Comprobante Oficial Imprimible */}
-      {createdGuiaModal && (
-        <Modal
-          isOpen={true}
-          onClose={() => setCreatedGuiaModal(null)}
-          title={"Comprobante de envío #" + createdGuiaModal.numeroGuia}
-          description="Guía emitida exitosamente. Lista para imprimir comprobante."
-          maxWidth="720"
-        >
-          <div className="space-y-4 text-[13px]">
-            <div className="p-4 rounded-panel border border-border bg-surface space-y-3 text-text">
-              <div className="flex items-center justify-between border-b border-border pb-2.5">
-                <div className="flex items-center gap-2">
-                  <Package className="w-5 h-5 text-accent" />
-                  <span className="font-bold text-base tracking-tight">UMG Express</span>
+      {createdGuiaModal && (() => {
+        const clienteRemitente = clientes.find((c) => c.id === createdGuiaModal.idClienteRemitente);
+        const clienteDestinatario = clientes.find((c) => c.id === createdGuiaModal.idClienteDestinatario);
+        const rutaGuia = rutas.find((r) => r.id === createdGuiaModal.idRuta);
+        const origenNombre = rutaGuia ? sucursalesMap.get(rutaGuia.idSucursalOrigen) || "Agencia Central" : "Agencia Central";
+        const destinoNombre = rutaGuia ? sucursalesMap.get(rutaGuia.idSucursalDestino) || "Agencia Destino" : "Agencia Destino";
+        const fechaEmision = new Date().toLocaleDateString("es-GT", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+
+        return (
+          <Modal
+            isOpen={true}
+            onClose={() => setCreatedGuiaModal(null)}
+            title={`Comprobante de envío #${createdGuiaModal.numeroGuia}`}
+            description="Guía emitida exitosamente. Lista para imprimir comprobante."
+            maxWidth="720"
+          >
+            <div className="space-y-4 text-[13px] print:space-y-3">
+              {/* Documento Oficial Formateado para Pantalla y Papel */}
+              <div className="p-5 rounded-panel border border-border bg-surface space-y-4 text-text print:border print:border-black print:p-4 print:bg-white print:text-black print:rounded-none">
+                {/* Encabezado Institucional Oficial */}
+                <div className="flex items-start justify-between border-b-2 border-border pb-3 print:border-black">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <Package className="w-5 h-5 text-accent print:text-black" />
+                      <span className="font-black text-lg tracking-tight text-text print:text-black">
+                        UMG EXPRESS
+                      </span>
+                    </div>
+                    <p className="text-[10px] uppercase tracking-wider font-bold text-text-muted print:text-black mt-0.5">
+                      Sistema Logístico y Transporte de Paquetería
+                    </p>
+                    <p className="text-[9px] text-text-faint print:text-gray-600">
+                      Sede Central: Ciudad de Guatemala, C.A. · PBX: (502) 2444-5555
+                    </p>
+                  </div>
+
+                  <div className="text-right space-y-1">
+                    <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider block print:text-black">
+                      Comprobante Oficial de Custodia
+                    </span>
+                    <span className="font-mono font-black text-xl text-accent tabular-nums block print:text-black">
+                      GUÍA #{createdGuiaModal.numeroGuia}
+                    </span>
+                    {/* Código de barras de alta legibilidad para escáner óptico */}
+                    <div className="font-mono text-[13px] font-bold tracking-[0.25em] text-text print:text-black select-none">
+                      ||| | |||| | ||| |||||
+                    </div>
+                  </div>
                 </div>
-                <div className="text-right">
-                  <span className="text-xs text-text-muted block">Guía Correlativa</span>
-                  <span className="font-bold text-lg text-accent tabular-nums">#{createdGuiaModal.numeroGuia}</span>
+
+                {/* Metadatos de Emisión */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 py-2 px-3 rounded bg-surface-hover/40 border border-border/60 text-[11px] print:border print:border-black print:bg-gray-50 print:text-[9pt]">
+                  <div>
+                    <span className="text-text-muted print:text-black block text-[10px] uppercase font-bold">Fecha / Hora:</span>
+                    <span className="font-medium text-text print:text-black">{fechaEmision}</span>
+                  </div>
+                  <div>
+                    <span className="text-text-muted print:text-black block text-[10px] uppercase font-bold">Estado:</span>
+                    <span className="font-semibold text-text print:text-black">{createdGuiaModal.estado || "En bodega"}</span>
+                  </div>
+                  <div>
+                    <span className="text-text-muted print:text-black block text-[10px] uppercase font-bold">Modalidad:</span>
+                    <span className="font-medium text-text print:text-black">Estándar Terrestre</span>
+                  </div>
+                  <div>
+                    <span className="text-text-muted print:text-black block text-[10px] uppercase font-bold">Pago:</span>
+                    <span className="font-bold text-success print:text-black">Al contado (Cancelado)</span>
+                  </div>
+                </div>
+
+                {/* Bloque Remitente y Destinatario */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-[12px] print:text-[9.5pt]">
+                  {/* Remitente */}
+                  <div className="p-3 rounded bg-surface-hover/20 border border-border space-y-1.5 print:border print:border-black print:bg-white print:rounded-none">
+                    <div className="flex items-center justify-between pb-1 border-b border-border print:border-black">
+                      <span className="text-[11px] font-bold uppercase tracking-wider text-text print:text-black">
+                        1. Remitente (Origen)
+                      </span>
+                      <span className="font-mono text-[10px] text-text-muted print:text-black">
+                        ID: #{createdGuiaModal.idClienteRemitente}
+                      </span>
+                    </div>
+                    <p className="font-bold text-text print:text-black text-[13px]">
+                      {clienteRemitente?.nombre || `Cliente #${createdGuiaModal.idClienteRemitente}`}
+                    </p>
+                    <p className="text-text-muted print:text-black text-[11px]">
+                      <strong>NIT:</strong> {clienteRemitente?.nit || "C/F"} · <strong>Tel:</strong> {clienteRemitente?.telefono || "N/A"}
+                    </p>
+                    <p className="text-text-muted print:text-black text-[11px]">
+                      <strong>Dirección:</strong> {clienteRemitente?.direccion || "Oficina Central"}
+                    </p>
+                    <div className="pt-1 text-[11px] font-medium text-accent print:text-black border-t border-border/50 print:border-black">
+                      <strong>Agencia Salida:</strong> {origenNombre}
+                    </div>
+                  </div>
+
+                  {/* Destinatario */}
+                  <div className="p-3 rounded bg-surface-hover/20 border border-border space-y-1.5 print:border print:border-black print:bg-white print:rounded-none">
+                    <div className="flex items-center justify-between pb-1 border-b border-border print:border-black">
+                      <span className="text-[11px] font-bold uppercase tracking-wider text-text print:text-black">
+                        2. Destinatario (Destino)
+                      </span>
+                      <span className="font-mono text-[10px] text-text-muted print:text-black">
+                        ID: #{createdGuiaModal.idClienteDestinatario}
+                      </span>
+                    </div>
+                    <p className="font-bold text-text print:text-black text-[13px]">
+                      {clienteDestinatario?.nombre || `Cliente #${createdGuiaModal.idClienteDestinatario}`}
+                    </p>
+                    <p className="text-text-muted print:text-black text-[11px]">
+                      <strong>NIT:</strong> {clienteDestinatario?.nit || "C/F"} · <strong>Tel:</strong> {clienteDestinatario?.telefono || "N/A"}
+                    </p>
+                    <p className="text-text-muted print:text-black text-[11px]">
+                      <strong>Dirección:</strong> {clienteDestinatario?.direccion || "Ciudad"}
+                    </p>
+                    <div className="pt-1 text-[11px] font-medium text-accent print:text-black border-t border-border/50 print:border-black">
+                      <strong>Agencia Destino:</strong> {destinoNombre}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Ficha Técnica de Dimensiones y Flete */}
+                <div className="border border-border rounded overflow-hidden print:border print:border-black print:rounded-none">
+                  <table className="w-full text-left text-[11px] border-collapse print:text-[9pt]">
+                    <thead>
+                      <tr className="bg-surface-hover/70 border-b border-border text-text-muted uppercase text-[10px] font-bold tracking-wider print:border-black print:bg-gray-100 print:text-black">
+                        <th className="py-1.5 px-3">Medidas Físicas</th>
+                        <th className="py-1.5 px-3 text-right">Peso Báscula</th>
+                        <th className="py-1.5 px-3 text-right">Peso Volumétrico</th>
+                        <th className="py-1.5 px-3 text-right">Peso Facturable</th>
+                        <th className="py-1.5 px-3 text-right">Total Flete</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr className="print:border-b print:border-black">
+                        <td className="py-2 px-3 font-mono print:text-black">
+                          {createdGuiaModal.largoCm} × {createdGuiaModal.anchoCm} × {createdGuiaModal.altoCm} cm
+                        </td>
+                        <td className="py-2 px-3 text-right font-mono print:text-black">
+                          {formatWeight(createdGuiaModal.pesoRealKg)}
+                        </td>
+                        <td className="py-2 px-3 text-right font-mono print:text-black">
+                          {formatWeight(createdGuiaModal.pesoVolumetricoKg)}
+                        </td>
+                        <td className="py-2 px-3 text-right font-mono font-bold print:text-black">
+                          {formatWeight(createdGuiaModal.pesoFacturableKg)}
+                        </td>
+                        <td className="py-2 px-3 text-right font-mono font-black text-accent text-[13px] print:text-black">
+                          {formatCurrency(createdGuiaModal.costoTotal)}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Bloque Legal de Firmas para Impresión */}
+                <div className="hidden print:block avoid-break pt-4 border-t border-black">
+                  <p className="text-[8pt] text-gray-700 text-center mb-6">
+                    El remitente certifica que el paquete no contiene sustancias ilícitas ni valores no declarados.
+                    Transporte amparado conforme a la legislación de encomiendas y comercio de la República de Guatemala.
+                  </p>
+                  <div className="grid grid-cols-3 gap-6 text-center text-[8.5pt]">
+                    <div>
+                      <div className="border-b border-black h-12" />
+                      <p className="font-bold text-black pt-1">Firma del Remitente</p>
+                      <p className="text-[7.5pt] text-gray-600">Declaración de contenido</p>
+                    </div>
+                    <div>
+                      <div className="border-b border-black h-12" />
+                      <p className="font-bold text-black pt-1">Agencia UMG Express</p>
+                      <p className="text-[7.5pt] text-gray-600">Sello y Firma Receptor</p>
+                    </div>
+                    <div>
+                      <div className="border-b border-black h-12" />
+                      <p className="font-bold text-black pt-1">Firma de Recepción</p>
+                      <p className="text-[7.5pt] text-gray-600">Recibí a entera satisfacción</p>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4 text-xs">
-                <div className="p-2.5 rounded bg-bg/50 border border-border/70 space-y-1">
-                  <span className="text-text-muted font-medium block">Remitente</span>
-                  <p className="font-semibold text-text">{clientesMap.get(createdGuiaModal.idClienteRemitente) || ("#" + createdGuiaModal.idClienteRemitente)}</p>
-                </div>
-                <div className="p-2.5 rounded bg-bg/50 border border-border/70 space-y-1">
-                  <span className="text-text-muted font-medium block">Destinatario</span>
-                  <p className="font-semibold text-text">{clientesMap.get(createdGuiaModal.idClienteDestinatario) || ("#" + createdGuiaModal.idClienteDestinatario)}</p>
-                </div>
-              </div>
-
-              <div className="pt-2 border-t border-border grid grid-cols-3 gap-2 text-xs tabular-nums">
-                <div>
-                  <span className="text-text-muted block">Peso facturable:</span>
-                  <span className="font-semibold">{formatWeight(createdGuiaModal.pesoFacturableKg)}</span>
-                </div>
-                <div>
-                  <span className="text-text-muted block">Dimensiones:</span>
-                  <span>{createdGuiaModal.largoCm + "×" + createdGuiaModal.anchoCm + "×" + createdGuiaModal.altoCm + " cm"}</span>
-                </div>
-                <div>
-                  <span className="text-text-muted block">Total cancelado:</span>
-                  <span className="font-bold text-accent text-[14px]">{formatCurrency(createdGuiaModal.costoTotal)}</span>
-                </div>
+              {/* Botones de acción del Modal (Ocultos en impresión) */}
+              <div className="flex justify-end gap-2 no-print pt-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCreatedGuiaModal(null)}
+                >
+                  Cerrar
+                </Button>
+                <Button
+                  variant="primary"
+                  size="sm"
+                  leftIcon={<Printer className="w-3.5 h-3.5" />}
+                  onClick={() => window.print()}
+                >
+                  Imprimir comprobante
+                </Button>
               </div>
             </div>
-
-            <div className="flex justify-end gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCreatedGuiaModal(null)}
-              >
-                Cerrar
-              </Button>
-              <Button
-                variant="primary"
-                size="sm"
-                leftIcon={<Printer className="w-3.5 h-3.5" />}
-                onClick={() => window.print()}
-              >
-                Imprimir comprobante
-              </Button>
-            </div>
-          </div>
-        </Modal>
-      )}
+          </Modal>
+        );
+      })()}
     </div>
   );
 }
