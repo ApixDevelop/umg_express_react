@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { useSearchParams } from "react-router";
 import { reportesApi } from "@/api/reportes";
+import { guiasApi } from "@/api/guias";
+import { Modal } from "@/components/ui/Modal";
+import { Select } from "@/components/ui/Select";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Button } from "@/components/ui/Button";
 import { StatusBadge } from "@/components/ui/Badge";
 import { formatCurrency, formatWeight } from "@/lib/utils";
-import type { RastreoInfo } from "@/types";
-import { Search, Printer, Copy, Check, Package, MapPin, Truck, Calendar, ShieldCheck } from "lucide-react";
+import type { RastreoInfo, EstadoGuia } from "@/types";
+import { Search, Printer, Copy, Check, Package, MapPin, Truck, Calendar, ShieldCheck, CheckCircle2, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 
 export function RastreoPage() {
@@ -17,6 +21,40 @@ export function RastreoPage() {
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [confirmEntregar, setConfirmEntregar] = useState(false);
+  const [modalCambiarEstado, setModalCambiarEstado] = useState(false);
+  const [nuevoEstadoRastreo, setNuevoEstadoRastreo] = useState<EstadoGuia>("Entregada");
+  const [isActionLoading, setIsActionLoading] = useState(false);
+
+  const handleMarcarEntregada = async () => {
+    if (!data) return;
+    setIsActionLoading(true);
+    try {
+      await guiasApi.marcarEntregada(data.numeroGuia);
+      toast.success(`Guía #${data.numeroGuia} marcada como Entregada exitosamente`);
+      setConfirmEntregar(false);
+      await buscarGuia(data.numeroGuia);
+    } catch (err: any) {
+      toast.error(err.response?.data?.mensaje || err.message || "Error al entregar guía");
+    } finally {
+      setIsActionLoading(false);
+    }
+  };
+
+  const handleActualizarEstado = async () => {
+    if (!data) return;
+    setIsActionLoading(true);
+    try {
+      await guiasApi.actualizarEstado(data.numeroGuia, nuevoEstadoRastreo);
+      toast.success(`Estado de guía actualizado a '${nuevoEstadoRastreo}'`);
+      setModalCambiarEstado(false);
+      await buscarGuia(data.numeroGuia);
+    } catch (err: any) {
+      toast.error(err.response?.data?.mensaje || err.message || "Error al actualizar estado");
+    } finally {
+      setIsActionLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (initialGuia) {
@@ -64,15 +102,42 @@ export function RastreoPage() {
       <div className="flex items-center justify-between no-print">
         <h1 className="text-[20px] font-semibold text-text">Rastreo de guía</h1>
         {data && (
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => window.print()}
-            className="gap-1.5 active:scale-[0.97]"
-          >
-            <Printer className="w-3.5 h-3.5" />
-            <span>Imprimir comprobante oficial</span>
-          </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            {data.estado !== "Entregada" && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setConfirmEntregar(true)}
+                className="gap-1.5 text-success hover:text-success hover:border-success/50"
+              >
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                <span>Marcar como entregada</span>
+              </Button>
+            )}
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setNuevoEstadoRastreo(data.estado as EstadoGuia);
+                setModalCambiarEstado(true);
+              }}
+              className="gap-1.5"
+            >
+              <RefreshCw className="w-3.5 h-3.5" />
+              <span>Cambiar estado</span>
+            </Button>
+
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => window.print()}
+              className="gap-1.5 active:scale-[0.97]"
+            >
+              <Printer className="w-3.5 h-3.5" />
+              <span>Imprimir comprobante oficial</span>
+            </Button>
+          </div>
         )}
       </div>
 
@@ -368,6 +433,70 @@ export function RastreoPage() {
           No se encontró la guía #{guiaNumber}. Verifique el número e intente de nuevo.
         </div>
       ) : null}
+      {/* Modal para Cambiar Estado Operativo */}
+      {modalCambiarEstado && data && (
+        <Modal
+          isOpen={true}
+          onClose={() => setModalCambiarEstado(false)}
+          title={`Cambiar Estado Operativo - Guía #${data.numeroGuia}`}
+          description="Transición en el flujo de cadena de custodia logística."
+          maxWidth="sm"
+        >
+          <div className="space-y-4 text-[13px]">
+            <div className="p-3 rounded bg-surface border border-border space-y-1">
+              <span className="text-[11px] text-text-muted font-semibold uppercase">Estado actual:</span>
+              <div className="flex items-center gap-2">
+                <StatusBadge status={data.estado} />
+                <span className="text-xs text-text-muted font-mono">
+                  {data.destinatario?.nombre || "Destinatario"}
+                </span>
+              </div>
+            </div>
+
+            <Select
+              label="Nuevo estado de la guía"
+              value={nuevoEstadoRastreo}
+              onChange={(e) => setNuevoEstadoRastreo(e.target.value as EstadoGuia)}
+            >
+              <option value="Creada">Creada (En bodega inicial)</option>
+              <option value="Despachada">Despachada (En tránsito vehicular)</option>
+              <option value="Entregada">Entregada (Recepción final por destinatario)</option>
+            </Select>
+
+            <div className="flex justify-end gap-2 pt-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setModalCambiarEstado(false)}
+              >
+                Cancelar
+              </Button>
+              <Button
+                variant="primary"
+                size="sm"
+                isLoading={isActionLoading}
+                onClick={handleActualizarEstado}
+              >
+                Guardar estado
+              </Button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* ConfirmDialog de Entrega Inmediata */}
+      <ConfirmDialog
+        isOpen={confirmEntregar}
+        onClose={() => setConfirmEntregar(false)}
+        onConfirm={handleMarcarEntregada}
+        variant="primary"
+        title="Confirmar Entrega de Paquete"
+        message={`¿Desea marcar formalmente la guía #${data?.numeroGuia} como ENTREGADA?`}
+        description="Esta acción actualizará la trazabilidad física a entregada con recepción conforme del cliente destinatario."
+        confirmText="Confirmar Entrega"
+        cancelText="Volver"
+        isLoading={isActionLoading}
+      />
     </div>
   );
 }

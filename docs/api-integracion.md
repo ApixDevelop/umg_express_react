@@ -148,3 +148,53 @@ El interceptor en `src/api/client.ts` procesa las respuestas del backend:
 2. **`403 Forbidden`:** Se notifica que el rol activo no cuenta con privilegios para la acción solicitada.
 3. **`409 Conflict`:** Se notifica duplicidad de clave única (e.g., "Ya existe un cliente con el NIT especificado").
 4. **`400 Bad Request`:** Se extrae el mensaje de validación del backend (e.g., "El vehículo excede su capacidad física de peso o volumen").
+
+
+---
+
+## 6. Endpoints de Transacciones — Ciclo de Vida de Guías
+
+El backend C++17 Crow implementa operaciones REST para el ciclo de vida y entrega de paquetería:
+
+### 6.1 Actualización de Estado Operativo
+* **Ruta:** `PUT /v1/transacciones/guias/{numeroGuia}` (admite también `PATCH`)
+* **Roles Autorizados:** `Administrador`, `Operador`
+* **Headers:** `Authorization: Bearer <token>`, `Content-Type: application/json`
+* **Payload:**
+  ```json
+  {
+    "estado": "Entregada" // Valores permitidos: "Creada" | "Despachada" | "Entregada"
+  }
+  ```
+* **Respuesta (`200 OK`):**
+  ```json
+  {
+    "success": true,
+    "mensaje": "Estado de guía actualizado exitosamente a 'Entregada'",
+    "guia": {
+      "numeroGuia": 1001,
+      "estado": "Entregada",
+      "idClienteRemitente": 2,
+      "idClienteDestinatario": 3,
+      "idRuta": 2,
+      "pesoRealKg": 12.5,
+      "costoTotal": 45.45
+    }
+  }
+  ```
+
+### 6.2 Acción Directa de Entrega de Paquete
+* **Ruta:** `POST /v1/transacciones/guias/{numeroGuia}/entregar`
+* **Roles Autorizados:** `Administrador`, `Operador`
+* **Headers:** `Authorization: Bearer <token>`
+* **Respuesta (`200 OK`):**
+  ```json
+  {
+    "success": true,
+    "mensaje": "Guía marcada como entregada exitosamente",
+    "guia": {
+      "numeroGuia": 1001,
+      "estado": "Entregada"
+    }
+  }
+  ```
