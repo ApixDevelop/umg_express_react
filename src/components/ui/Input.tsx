@@ -10,8 +10,26 @@ export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> 
 }
 
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, label, error, helperText, leftIcon, rightIcon, id, ...props }, ref) => {
+  (
+    {
+      className,
+      label,
+      error,
+      helperText,
+      leftIcon,
+      rightIcon,
+      id,
+      type,
+      step,
+      onFocus,
+      ...props
+    },
+    ref
+  ) => {
     const inputId = id || props.name || Math.random().toString(36).substring(7);
+
+    // Si es tipo número y no se especifica step, por defecto usa enteros (step="1")
+    const resolvedStep = type === "number" ? (step || "1") : step;
 
     return (
       <div className="w-full space-y-1">
@@ -30,6 +48,15 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
           <input
             ref={ref}
             id={inputId}
+            type={type}
+            step={resolvedStep}
+            onFocus={(e) => {
+              // Auto-selecciona el texto en campos numéricos al enfocar para que no se anteponga el 0
+              if (type === "number") {
+                e.target.select();
+              }
+              onFocus?.(e);
+            }}
             className={cn(
               "w-full h-[34px] bg-surface text-text placeholder:text-text-faint text-[13px] rounded-control border border-border-input px-3",
               "transition-all duration-150 ease-out",

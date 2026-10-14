@@ -21,8 +21,8 @@ export function VehiculosPage() {
 
   const [placa, setPlaca] = useState("");
   const [marcaModelo, setMarcaModelo] = useState("");
-  const [capacidadPesoKg, setCapacidadPesoKg] = useState<number>(1000);
-  const [capacidadVolumenM3, setCapacidadVolumenM3] = useState<number>(10);
+  const [capacidadPesoKg, setCapacidadPesoKg] = useState<number | string>(1000);
+  const [capacidadVolumenM3, setCapacidadVolumenM3] = useState<number | string>(10);
   const [estado, setEstado] = useState<EstadoVehiculo>("Disponible");
 
   const { data: vehiculos = [], isLoading } = useQuery({
@@ -230,19 +230,21 @@ export function VehiculosPage() {
             <Input
               label="Capacidad peso (kg)"
               type="number"
-              step="0.01"
+              step="1"
               min="1"
+              placeholder="Ej: 1000"
               value={capacidadPesoKg}
-              onChange={(e) => setCapacidadPesoKg(parseFloat(e.target.value) || 0)}
+              onChange={(e) => setCapacidadPesoKg(e.target.value)}
               required
             />
             <Input
               label="Capacidad volumen (m³)"
               type="number"
-              step="0.01"
-              min="0.1"
+              step="1"
+              min="1"
+              placeholder="Ej: 10"
               value={capacidadVolumenM3}
-              onChange={(e) => setCapacidadVolumenM3(parseFloat(e.target.value) || 0)}
+              onChange={(e) => setCapacidadVolumenM3(e.target.value)}
               required
             />
             <Select

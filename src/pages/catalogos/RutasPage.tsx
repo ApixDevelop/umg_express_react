@@ -20,8 +20,8 @@ export function RutasPage() {
 
   const [idOrigen, setIdOrigen] = useState<number>(0);
   const [idDestino, setIdDestino] = useState<number>(0);
-  const [distanciaKm, setDistanciaKm] = useState<number>(50);
-  const [tarifaBase, setTarifaBase] = useState<number>(45);
+  const [distanciaKm, setDistanciaKm] = useState<number | string>(50);
+  const [tarifaBase, setTarifaBase] = useState<number | string>("");
 
   const { data: rutas = [], isLoading } = useQuery({
     queryKey: ["rutas"],
@@ -83,7 +83,7 @@ export function RutasPage() {
     setIdOrigen(sucursales[0]?.id || 0);
     setIdDestino(sucursales[1]?.id || 0);
     setDistanciaKm(50);
-    setTarifaBase(45);
+    setTarifaBase("");
     setIsModalOpen(true);
   };
 
@@ -239,19 +239,21 @@ export function RutasPage() {
             <Input
               label="Distancia aproximada (km)"
               type="number"
-              step="0.1"
+              step="1"
               min="1"
+              placeholder="Ej: 50"
               value={distanciaKm}
-              onChange={(e) => setDistanciaKm(parseFloat(e.target.value) || 0)}
+              onChange={(e) => setDistanciaKm(e.target.value)}
               required
             />
             <Input
               label="Tarifa base de flete (Q)"
               type="number"
-              step="0.01"
+              step="1"
               min="0"
+              placeholder="Ej: 45"
               value={tarifaBase}
-              onChange={(e) => setTarifaBase(parseFloat(e.target.value) || 0)}
+              onChange={(e) => setTarifaBase(e.target.value)}
               required
             />
           </div>

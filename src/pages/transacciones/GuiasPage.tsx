@@ -31,10 +31,10 @@ export function GuiasPage() {
   const [idDestinatario, setIdDestinatario] = useState<number>(0);
   const [idRuta, setIdRuta] = useState<number>(0);
   const [idTarifa, setIdTarifa] = useState<number>(0);
-  const [pesoReal, setPesoReal] = useState<number>(1);
-  const [largo, setLargo] = useState<number>(20);
-  const [ancho, setAncho] = useState<number>(15);
-  const [alto, setAlto] = useState<number>(10);
+  const [pesoReal, setPesoReal] = useState<number | string>(1);
+  const [largo, setLargo] = useState<number | string>(20);
+  const [ancho, setAncho] = useState<number | string>(15);
+  const [alto, setAlto] = useState<number | string>(10);
 
   // Queries
   const { data: guias = [], isLoading: loadingGuias } = useQuery({
@@ -69,10 +69,15 @@ export function GuiasPage() {
   const selectedTarifa = useMemo(() => tarifas.find((t) => t.id === Number(idTarifa)), [tarifas, idTarifa]);
   const selectedRuta = useMemo(() => rutas.find((r) => r.id === Number(idRuta)), [rutas, idRuta]);
 
-  const livePesoVolumetrico = useMemo(() => calcularPesoVolumetrico(largo, ancho, alto), [largo, ancho, alto]);
-  const liveVolumenM3 = useMemo(() => calcularVolumenM3(largo, ancho, alto), [largo, ancho, alto]);
-  const livePesoFacturable = useMemo(() => calcularPesoFacturable(pesoReal, livePesoVolumetrico), [pesoReal, livePesoVolumetrico]);
-  const isVolumetricGreater = livePesoVolumetrico > pesoReal;
+  const numLargo = Number(largo) || 0;
+  const numAncho = Number(ancho) || 0;
+  const numAlto = Number(alto) || 0;
+  const numPesoReal = Number(pesoReal) || 0;
+
+  const livePesoVolumetrico = useMemo(() => calcularPesoVolumetrico(numLargo, numAncho, numAlto), [numLargo, numAncho, numAlto]);
+  const liveVolumenM3 = useMemo(() => calcularVolumenM3(numLargo, numAncho, numAlto), [numLargo, numAncho, numAlto]);
+  const livePesoFacturable = useMemo(() => calcularPesoFacturable(numPesoReal, livePesoVolumetrico), [numPesoReal, livePesoVolumetrico]);
+  const isVolumetricGreater = livePesoVolumetrico > numPesoReal;
 
   const liveCostoEstimado = useMemo(() => {
     return calcularCostoEstimado(selectedRuta?.tarifaBase || 0, livePesoFacturable, liveVolumenM3, selectedTarifa);
@@ -140,7 +145,12 @@ export function GuiasPage() {
       toast.error("El remitente y el destinatario no pueden ser el mismo cliente");
       return;
     }
-    if (pesoReal <= 0 || largo <= 0 || ancho <= 0 || alto <= 0) {
+    const pReal = Number(pesoReal) || 0;
+    const lCm = Number(largo) || 0;
+    const aCm = Number(ancho) || 0;
+    const hCm = Number(alto) || 0;
+
+    if (pReal <= 0 || lCm <= 0 || aCm <= 0 || hCm <= 0) {
       toast.error("Las medidas y peso deben ser mayores a 0");
       return;
     }
@@ -150,10 +160,10 @@ export function GuiasPage() {
       idClienteDestinatario: Number(idDestinatario),
       idRuta: Number(idRuta),
       idTarifa: Number(idTarifa) || undefined,
-      pesoRealKg: Number(pesoReal),
-      largoCm: Number(largo),
-      anchoCm: Number(ancho),
-      altoCm: Number(alto),
+      pesoRealKg: pReal,
+      largoCm: lCm,
+      anchoCm: aCm,
+      altoCm: hCm,
     });
   };
 
@@ -397,37 +407,41 @@ export function GuiasPage() {
               <Input
                 label="Largo (cm)"
                 type="number"
-                step="0.1"
-                min="0.1"
+                step="1"
+                min="1"
+                placeholder="Ej: 30"
                 value={largo}
-                onChange={(e) => setLargo(parseFloat(e.target.value) || 0)}
+                onChange={(e) => setLargo(e.target.value)}
                 required
               />
               <Input
                 label="Ancho (cm)"
                 type="number"
-                step="0.1"
-                min="0.1"
+                step="1"
+                min="1"
+                placeholder="Ej: 20"
                 value={ancho}
-                onChange={(e) => setAncho(parseFloat(e.target.value) || 0)}
+                onChange={(e) => setAncho(e.target.value)}
                 required
               />
               <Input
                 label="Alto (cm)"
                 type="number"
-                step="0.1"
-                min="0.1"
+                step="1"
+                min="1"
+                placeholder="Ej: 15"
                 value={alto}
-                onChange={(e) => setAlto(parseFloat(e.target.value) || 0)}
+                onChange={(e) => setAlto(e.target.value)}
                 required
               />
               <Input
                 label="Peso Báscula (kg)"
                 type="number"
-                step="0.01"
-                min="0.01"
+                step="1"
+                min="1"
+                placeholder="Ej: 5"
                 value={pesoReal}
-                onChange={(e) => setPesoReal(parseFloat(e.target.value) || 0)}
+                onChange={(e) => setPesoReal(e.target.value)}
                 required
               />
             </div>

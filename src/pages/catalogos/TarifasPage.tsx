@@ -18,9 +18,9 @@ export function TarifasPage() {
   const [deletingItem, setDeletingItem] = useState<{ id: number; name: string } | null>(null);
 
   const [tipoCarga, setTipoCarga] = useState("");
-  const [precioPorKg, setPrecioPorKg] = useState<number>(5);
-  const [precioPorM3, setPrecioPorM3] = useState<number>(150);
-  const [recargoEspecial, setRecargoEspecial] = useState<number>(0);
+  const [precioPorKg, setPrecioPorKg] = useState<number | string>(5);
+  const [precioPorM3, setPrecioPorM3] = useState<number | string>(150);
+  const [recargoEspecial, setRecargoEspecial] = useState<number | string>("");
 
   const { data: tarifas = [], isLoading } = useQuery({
     queryKey: ["tarifas"],
@@ -70,7 +70,7 @@ export function TarifasPage() {
     setTipoCarga("");
     setPrecioPorKg(5);
     setPrecioPorM3(150);
-    setRecargoEspecial(0);
+    setRecargoEspecial("");
     setIsModalOpen(true);
   };
 
@@ -196,28 +196,31 @@ export function TarifasPage() {
             <Input
               label="Precio por kg (Q)"
               type="number"
-              step="0.01"
+              step="1"
               min="0"
+              placeholder="Ej: 5"
               value={precioPorKg}
-              onChange={(e) => setPrecioPorKg(parseFloat(e.target.value) || 0)}
+              onChange={(e) => setPrecioPorKg(e.target.value)}
               required
             />
             <Input
               label="Precio por m³ (Q)"
               type="number"
-              step="0.01"
+              step="1"
               min="0"
+              placeholder="Ej: 150"
               value={precioPorM3}
-              onChange={(e) => setPrecioPorM3(parseFloat(e.target.value) || 0)}
+              onChange={(e) => setPrecioPorM3(e.target.value)}
               required
             />
             <Input
               label="Recargo fijo (Q)"
               type="number"
-              step="0.01"
+              step="1"
               min="0"
+              placeholder="Ej: 0"
               value={recargoEspecial}
-              onChange={(e) => setRecargoEspecial(parseFloat(e.target.value) || 0)}
+              onChange={(e) => setRecargoEspecial(e.target.value)}
               required
             />
           </div>
