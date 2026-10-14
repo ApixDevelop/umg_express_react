@@ -24,6 +24,7 @@
 }
 
 :root {
+  color-scheme: light;
   /* LIGHT MODE (Swiss Logistics Blueprint - Alto Contraste Diurno) */
   --bg: #f5f6f9;
   --surface: #ffffff;
@@ -54,6 +55,7 @@
 }
 
 .dark {
+  color-scheme: dark;
   /* DARK MODE (Tactical Telemetry Cockpit - Control Nocturno) */
   --bg: #0c0d11;
   --surface: #131419;
@@ -117,6 +119,34 @@ body {
 @keyframes pulse-subtle {
   0%, 100% { opacity: 1; transform: scale(1); }
   50% { opacity: 0.6; transform: scale(1.08); }
+}
+
+
+/* Soporte nativo para selects y desplegables en Dark Mode */
+select {
+  color-scheme: light;
+}
+
+.dark select {
+  color-scheme: dark;
+}
+
+select option {
+  background-color: var(--surface);
+  color: var(--text);
+  padding: 8px 12px;
+}
+
+.dark select option {
+  background-color: #1a1c24;
+  color: #f0f2f5;
+}
+
+.dark select option:hover,
+.dark select option:focus,
+.dark select option:checked {
+  background-color: #262934 !important;
+  color: #ffffff !important;
 }
 
 @media (prefers-reduced-motion: reduce) {
