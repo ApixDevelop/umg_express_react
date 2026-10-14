@@ -96,7 +96,7 @@ export function ManifiestoPage() {
   return (
     <div className="space-y-4">
             {/* Encabezado Institucional para Impresión Oficial */}
-      <div className="hidden print:block border-b-2 border-black pb-4 mb-4">
+      <div className="print-only border-b-2 border-black pb-4 mb-4">
         <div className="flex items-start justify-between">
           <div>
             <h2 className="text-[16pt] font-black text-black leading-none">

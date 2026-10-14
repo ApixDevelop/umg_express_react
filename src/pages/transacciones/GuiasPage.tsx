@@ -168,7 +168,8 @@ export function GuiasPage() {
   };
 
   return (
-    <div className={cn("space-y-4", createdGuiaModal && "print:hidden")}>
+    <>
+      <div className={cn("space-y-4", createdGuiaModal ? "no-print" : "")}>
       {/* Cabecera y botón primario */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
@@ -497,6 +498,7 @@ export function GuiasPage() {
           </div>
         </form>
       </Modal>
+      </div>
 
       {/* Modal de Comprobante Oficial Imprimible */}
       {createdGuiaModal && (() => {
@@ -661,7 +663,7 @@ export function GuiasPage() {
                 </div>
 
                 {/* Bloque Legal de Firmas para Impresión */}
-                <div className="hidden print:block avoid-break pt-4 border-t border-black">
+                <div className="print-only avoid-break pt-4 border-t border-black">
                   <p className="text-[8pt] text-gray-700 text-center mb-6">
                     El remitente certifica que el paquete no contiene sustancias ilícitas ni valores no declarados.
                     Transporte amparado conforme a la legislación de encomiendas y comercio de la República de Guatemala.
@@ -708,6 +710,6 @@ export function GuiasPage() {
           </Modal>
         );
       })()}
-    </div>
+    </>
   );
 }

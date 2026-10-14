@@ -117,7 +117,7 @@ export function LiquidacionPage() {
   return (
     <div className="space-y-4">
             {/* Encabezado Formal para Impresión Oficial */}
-      <div className="hidden print:block border-b-2 border-black pb-4 mb-4">
+      <div className="print-only border-b-2 border-black pb-4 mb-4">
         <div className="flex items-start justify-between">
           <div>
             <h2 className="text-[16pt] font-black text-black leading-none">
@@ -582,7 +582,7 @@ export function LiquidacionPage() {
       )}
 
       {/* Bloque Legal de Auditoría Contable (para Impresión) */}
-      <div className="pt-8 border-t border-border hidden print:block print:border-black">
+      <div className="pt-8 border-t border-border print-only print:border-black">
         <div className="grid grid-cols-2 gap-12 text-center text-[12px]">
           <div className="space-y-1">
             <div className="border-b border-black h-12" />

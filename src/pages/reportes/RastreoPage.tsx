@@ -108,7 +108,7 @@ export function RastreoPage() {
           {/* ============================================================== */}
           {/* ENCABEZADO OFICIAL DE DOCUMENTO (VISIBLE AL IMPRIMIR)           */}
           {/* ============================================================== */}
-          <div className="hidden print:block border-b-2 border-black pb-4 mb-4">
+          <div className="print-only border-b-2 border-black pb-4 mb-4">
             <div className="flex items-start justify-between">
               <div>
                 <div className="flex items-center gap-2">
@@ -336,7 +336,7 @@ export function RastreoPage() {
           {/* ============================================================== */}
           {/* CADENA DE CUSTODIA Y FIRMAS LEGALES (IMPRESIÓN OFICIAL)         */}
           {/* ============================================================== */}
-          <div className="hidden print:block avoid-break pt-6 border-t border-black">
+          <div className="print-only avoid-break pt-6 border-t border-black">
             <p className="text-[8.5pt] text-gray-700 text-center mb-8">
               El presente comprobante ampara el transporte y custodia de la paquetería descrita, conforme
               a la legislación de transporte terrestre de la República de Guatemala. En caso de reclamo, presente este documento.

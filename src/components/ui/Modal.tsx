@@ -46,10 +46,10 @@ export function Modal({
   }[maxWidth] || "max-w-[720px]";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-in fade-in duration-200 print:static print:p-0 print:block print:overflow-visible">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto animate-in fade-in duration-200 print-modal-container">
       {/* Backdrop with subtle blur */}
       <div
-        className="fixed inset-0 bg-black/65 backdrop-blur-[2px] transition-opacity duration-200 print:hidden"
+        className="fixed inset-0 bg-black/65 backdrop-blur-[2px] transition-opacity duration-200 no-print"
         onClick={onClose}
       />
 
@@ -57,12 +57,11 @@ export function Modal({
       <div
         className={cn(
           "relative w-full rounded-panel border border-border bg-surface shadow-[0_8px_32px_rgba(0,0,0,0.5)] z-10 overflow-hidden",
-          "transform transition-all duration-200 ease-out animate-in zoom-in-95",
-          maxW,
-          "print:static print:w-full print:max-w-none print:border-none print:shadow-none print:p-0 print:m-0 print:bg-white print:text-black"
+          "transform transition-all duration-200 ease-out animate-in zoom-in-95 print-modal-dialog",
+          maxW
         )}
       >
-        <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-surface print:hidden">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-surface no-print">
           <div>
             <h3 className="text-[15px] font-semibold text-text tracking-tight">{title}</h3>
             {description && <p className="text-[12px] text-text-muted mt-0.5">{description}</p>}
