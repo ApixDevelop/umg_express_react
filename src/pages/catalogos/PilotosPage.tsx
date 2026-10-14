@@ -4,6 +4,7 @@ import { pilotosApi } from "@/api/catalogos";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Modal } from "@/components/ui/Modal";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Edit2, Trash2, Search, Plus, UserCheck } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
 import { toast } from "sonner";
@@ -14,6 +15,7 @@ export function PilotosPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<Piloto | null>(null);
+  const [deletingItem, setDeletingItem] = useState<{ id: number; name: string } | null>(null);
 
   const [nombre, setNombre] = useState("");
   const [licencia, setLicencia] = useState("");
@@ -74,9 +76,7 @@ export function PilotosPage() {
   };
 
   const handleDelete = (id: number, nombre: string) => {
-    if (window.confirm(`¿Está seguro de dar de baja al piloto "${nombre}"?`)) {
-      deleteMutation.mutate(id);
-    }
+    setDeletingItem({ id, name: nombre });
   };
 
   const filtered = pilotos.filter((p) =>
@@ -219,6 +219,28 @@ export function PilotosPage() {
           </div>
         </form>
       </Modal>
+
+      {/* Dialogo personalizado de confirmacion para baja logica */}
+      <ConfirmDialog
+        isOpen={!!deletingItem}
+        onClose={() => setDeletingItem(null)}
+        onConfirm={() => {
+          if (deletingItem) {
+            deleteMutation.mutate(deletingItem.id, {
+              onSettled: () => setDeletingItem(null),
+            });
+          }
+        }}
+        title="Dar de baja piloto"
+        message={
+          <span>
+            ¿Está seguro de dar de baja al piloto <strong>"{deletingItem?.name}"</strong>?
+          </span>
+        }
+        description="Esta acción deshabilitará al piloto para nuevas asignaciones de vehículos."
+        confirmText="Dar de baja"
+        isLoading={deleteMutation.isPending}
+      />
     </div>
   );
 }

@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { StatusBadge } from "@/components/ui/Badge";
 import { Modal } from "@/components/ui/Modal";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Edit2, Trash2, Search, Plus, Truck } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
 import { toast } from "sonner";
@@ -16,11 +17,12 @@ export function VehiculosPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<Vehiculo | null>(null);
+  const [deletingItem, setDeletingItem] = useState<{ id: number; name: string } | null>(null);
 
   const [placa, setPlaca] = useState("");
   const [marcaModelo, setMarcaModelo] = useState("");
-  const [capacidadPesoKg, setCapacidadPesoKg] = useState<number>(1000);
-  const [capacidadVolumenM3, setCapacidadVolumenM3] = useState<number>(10);
+  const [capacidadPesoKg, setCapacidadPesoKg] = useState<number | string>(1000);
+  const [capacidadVolumenM3, setCapacidadVolumenM3] = useState<number | string>(10);
   const [estado, setEstado] = useState<EstadoVehiculo>("Disponible");
 
   const { data: vehiculos = [], isLoading } = useQuery({
@@ -94,9 +96,7 @@ export function VehiculosPage() {
   };
 
   const handleDelete = (id: number, placa: string) => {
-    if (window.confirm(`¿Está seguro de dar de baja el vehículo "${placa}"?`)) {
-      deleteMutation.mutate(id);
-    }
+    setDeletingItem({ id, name: placa });
   };
 
   const filtered = vehiculos.filter((v) =>
@@ -230,19 +230,21 @@ export function VehiculosPage() {
             <Input
               label="Capacidad peso (kg)"
               type="number"
-              step="0.01"
+              step="1"
               min="1"
+              placeholder="Ej: 1000"
               value={capacidadPesoKg}
-              onChange={(e) => setCapacidadPesoKg(parseFloat(e.target.value) || 0)}
+              onChange={(e) => setCapacidadPesoKg(e.target.value)}
               required
             />
             <Input
               label="Capacidad volumen (m³)"
               type="number"
-              step="0.01"
-              min="0.1"
+              step="1"
+              min="1"
+              placeholder="Ej: 10"
               value={capacidadVolumenM3}
-              onChange={(e) => setCapacidadVolumenM3(parseFloat(e.target.value) || 0)}
+              onChange={(e) => setCapacidadVolumenM3(e.target.value)}
               required
             />
             <Select
@@ -266,6 +268,28 @@ export function VehiculosPage() {
           </div>
         </form>
       </Modal>
+
+      {/* Dialogo personalizado de confirmacion para baja logica */}
+      <ConfirmDialog
+        isOpen={!!deletingItem}
+        onClose={() => setDeletingItem(null)}
+        onConfirm={() => {
+          if (deletingItem) {
+            deleteMutation.mutate(deletingItem.id, {
+              onSettled: () => setDeletingItem(null),
+            });
+          }
+        }}
+        title="Dar de baja vehículo"
+        message={
+          <span>
+            ¿Está seguro de dar de baja el vehículo con placa <strong>"{deletingItem?.name}"</strong>?
+          </span>
+        }
+        description="Esta unidad dejará de figurar en la bahía de despacho operativo."
+        confirmText="Dar de baja"
+        isLoading={deleteMutation.isPending}
+      />
     </div>
   );
 }

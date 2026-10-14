@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Modal } from "@/components/ui/Modal";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { formatCurrency } from "@/lib/utils";
 import { Edit2, Trash2, Plus, Route, ArrowRight } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
@@ -15,11 +16,12 @@ export function RutasPage() {
   const queryClient = useQueryClient();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<Ruta | null>(null);
+  const [deletingItem, setDeletingItem] = useState<{ id: number; name: string } | null>(null);
 
   const [idOrigen, setIdOrigen] = useState<number>(0);
   const [idDestino, setIdDestino] = useState<number>(0);
-  const [distanciaKm, setDistanciaKm] = useState<number>(50);
-  const [tarifaBase, setTarifaBase] = useState<number>(45);
+  const [distanciaKm, setDistanciaKm] = useState<number | string>(50);
+  const [tarifaBase, setTarifaBase] = useState<number | string>("");
 
   const { data: rutas = [], isLoading } = useQuery({
     queryKey: ["rutas"],
@@ -81,7 +83,7 @@ export function RutasPage() {
     setIdOrigen(sucursales[0]?.id || 0);
     setIdDestino(sucursales[1]?.id || 0);
     setDistanciaKm(50);
-    setTarifaBase(45);
+    setTarifaBase("");
     setIsModalOpen(true);
   };
 
@@ -99,10 +101,8 @@ export function RutasPage() {
     setEditingItem(null);
   };
 
-  const handleDelete = (id: number) => {
-    if (window.confirm(`¿Está seguro de dar de baja la ruta #${id}?`)) {
-      deleteMutation.mutate(id);
-    }
+  const handleDelete = (id: number, name?: string) => {
+    setDeletingItem({ id, name: name || `Ruta #${id}` });
   };
 
   return (
@@ -174,7 +174,7 @@ export function RutasPage() {
                           <Edit2 className="w-3.5 h-3.5" />
                         </button>
                         <button
-                          onClick={() => handleDelete(r.id)}
+                          onClick={() => handleDelete(r.id, `${sucursalesMap.get(r.idSucursalOrigen) || "Origen"} → ${sucursalesMap.get(r.idSucursalDestino) || "Destino"}`)}
                           className="p-1 text-text-muted hover:text-danger hover:bg-danger/10 rounded transition-colors cursor-pointer active:scale-[0.92]"
                           title="Eliminar"
                         >
@@ -239,19 +239,21 @@ export function RutasPage() {
             <Input
               label="Distancia aproximada (km)"
               type="number"
-              step="0.1"
+              step="1"
               min="1"
+              placeholder="Ej: 50"
               value={distanciaKm}
-              onChange={(e) => setDistanciaKm(parseFloat(e.target.value) || 0)}
+              onChange={(e) => setDistanciaKm(e.target.value)}
               required
             />
             <Input
               label="Tarifa base de flete (Q)"
               type="number"
-              step="0.01"
+              step="1"
               min="0"
+              placeholder="Ej: 45"
               value={tarifaBase}
-              onChange={(e) => setTarifaBase(parseFloat(e.target.value) || 0)}
+              onChange={(e) => setTarifaBase(e.target.value)}
               required
             />
           </div>
@@ -266,6 +268,28 @@ export function RutasPage() {
           </div>
         </form>
       </Modal>
+
+      {/* Dialogo personalizado de confirmacion para baja logica */}
+      <ConfirmDialog
+        isOpen={!!deletingItem}
+        onClose={() => setDeletingItem(null)}
+        onConfirm={() => {
+          if (deletingItem) {
+            deleteMutation.mutate(deletingItem.id, {
+              onSettled: () => setDeletingItem(null),
+            });
+          }
+        }}
+        title="Dar de baja ruta"
+        message={
+          <span>
+            ¿Está seguro de dar de baja el tramo logístico <strong>"{deletingItem?.name}"</strong>?
+          </span>
+        }
+        description="Esta ruta de distribución interdepartamental será desactivada."
+        confirmText="Dar de baja"
+        isLoading={deleteMutation.isPending}
+      />
     </div>
   );
 }

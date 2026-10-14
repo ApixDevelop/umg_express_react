@@ -4,6 +4,7 @@ import { tarifasApi } from "@/api/catalogos";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Modal } from "@/components/ui/Modal";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { formatCurrency } from "@/lib/utils";
 import { Edit2, Trash2, Plus, DollarSign } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
@@ -14,11 +15,12 @@ export function TarifasPage() {
   const queryClient = useQueryClient();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<Tarifa | null>(null);
+  const [deletingItem, setDeletingItem] = useState<{ id: number; name: string } | null>(null);
 
   const [tipoCarga, setTipoCarga] = useState("");
-  const [precioPorKg, setPrecioPorKg] = useState<number>(5);
-  const [precioPorM3, setPrecioPorM3] = useState<number>(150);
-  const [recargoEspecial, setRecargoEspecial] = useState<number>(0);
+  const [precioPorKg, setPrecioPorKg] = useState<number | string>(5);
+  const [precioPorM3, setPrecioPorM3] = useState<number | string>(150);
+  const [recargoEspecial, setRecargoEspecial] = useState<number | string>("");
 
   const { data: tarifas = [], isLoading } = useQuery({
     queryKey: ["tarifas"],
@@ -68,7 +70,7 @@ export function TarifasPage() {
     setTipoCarga("");
     setPrecioPorKg(5);
     setPrecioPorM3(150);
-    setRecargoEspecial(0);
+    setRecargoEspecial("");
     setIsModalOpen(true);
   };
 
@@ -87,9 +89,7 @@ export function TarifasPage() {
   };
 
   const handleDelete = (id: number, name: string) => {
-    if (window.confirm(`¿Está seguro de dar de baja la tarifa "${name}"?`)) {
-      deleteMutation.mutate(id);
-    }
+    setDeletingItem({ id, name });
   };
 
   return (
@@ -196,28 +196,31 @@ export function TarifasPage() {
             <Input
               label="Precio por kg (Q)"
               type="number"
-              step="0.01"
+              step="1"
               min="0"
+              placeholder="Ej: 5"
               value={precioPorKg}
-              onChange={(e) => setPrecioPorKg(parseFloat(e.target.value) || 0)}
+              onChange={(e) => setPrecioPorKg(e.target.value)}
               required
             />
             <Input
               label="Precio por m³ (Q)"
               type="number"
-              step="0.01"
+              step="1"
               min="0"
+              placeholder="Ej: 150"
               value={precioPorM3}
-              onChange={(e) => setPrecioPorM3(parseFloat(e.target.value) || 0)}
+              onChange={(e) => setPrecioPorM3(e.target.value)}
               required
             />
             <Input
               label="Recargo fijo (Q)"
               type="number"
-              step="0.01"
+              step="1"
               min="0"
+              placeholder="Ej: 0"
               value={recargoEspecial}
-              onChange={(e) => setRecargoEspecial(parseFloat(e.target.value) || 0)}
+              onChange={(e) => setRecargoEspecial(e.target.value)}
               required
             />
           </div>
@@ -232,6 +235,28 @@ export function TarifasPage() {
           </div>
         </form>
       </Modal>
+
+      {/* Dialogo personalizado de confirmacion para baja logica */}
+      <ConfirmDialog
+        isOpen={!!deletingItem}
+        onClose={() => setDeletingItem(null)}
+        onConfirm={() => {
+          if (deletingItem) {
+            deleteMutation.mutate(deletingItem.id, {
+              onSettled: () => setDeletingItem(null),
+            });
+          }
+        }}
+        title="Dar de baja tarifa"
+        message={
+          <span>
+            ¿Está seguro de dar de baja la tarifa <strong>"{deletingItem?.name}"</strong>?
+          </span>
+        }
+        description="Esta acción desactivará la tarifa en el sistema mediante baja lógica."
+        confirmText="Dar de baja"
+        isLoading={deleteMutation.isPending}
+      />
     </div>
   );
 }
