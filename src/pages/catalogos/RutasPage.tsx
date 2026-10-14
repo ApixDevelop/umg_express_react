@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Modal } from "@/components/ui/Modal";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { formatCurrency } from "@/lib/utils";
 import { Edit2, Trash2, Plus, Route, ArrowRight } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
@@ -15,6 +16,7 @@ export function RutasPage() {
   const queryClient = useQueryClient();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<Ruta | null>(null);
+  const [deletingItem, setDeletingItem] = useState<{ id: number; name: string } | null>(null);
 
   const [idOrigen, setIdOrigen] = useState<number>(0);
   const [idDestino, setIdDestino] = useState<number>(0);
@@ -99,10 +101,8 @@ export function RutasPage() {
     setEditingItem(null);
   };
 
-  const handleDelete = (id: number) => {
-    if (window.confirm(`¿Está seguro de dar de baja la ruta #${id}?`)) {
-      deleteMutation.mutate(id);
-    }
+  const handleDelete = (id: number, name?: string) => {
+    setDeletingItem({ id, name: name || `Ruta #${id}` });
   };
 
   return (
@@ -174,7 +174,7 @@ export function RutasPage() {
                           <Edit2 className="w-3.5 h-3.5" />
                         </button>
                         <button
-                          onClick={() => handleDelete(r.id)}
+                          onClick={() => handleDelete(r.id, `${sucursalesMap.get(r.idSucursalOrigen) || "Origen"} → ${sucursalesMap.get(r.idSucursalDestino) || "Destino"}`)}
                           className="p-1 text-text-muted hover:text-danger hover:bg-danger/10 rounded transition-colors cursor-pointer active:scale-[0.92]"
                           title="Eliminar"
                         >
@@ -266,6 +266,28 @@ export function RutasPage() {
           </div>
         </form>
       </Modal>
+
+      {/* Dialogo personalizado de confirmacion para baja logica */}
+      <ConfirmDialog
+        isOpen={!!deletingItem}
+        onClose={() => setDeletingItem(null)}
+        onConfirm={() => {
+          if (deletingItem) {
+            deleteMutation.mutate(deletingItem.id, {
+              onSettled: () => setDeletingItem(null),
+            });
+          }
+        }}
+        title="Dar de baja ruta"
+        message={
+          <span>
+            ¿Está seguro de dar de baja el tramo logístico <strong>"{deletingItem?.name}"</strong>?
+          </span>
+        }
+        description="Esta ruta de distribución interdepartamental será desactivada."
+        confirmText="Dar de baja"
+        isLoading={deleteMutation.isPending}
+      />
     </div>
   );
 }

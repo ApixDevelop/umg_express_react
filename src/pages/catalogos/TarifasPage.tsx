@@ -4,6 +4,7 @@ import { tarifasApi } from "@/api/catalogos";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Modal } from "@/components/ui/Modal";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { formatCurrency } from "@/lib/utils";
 import { Edit2, Trash2, Plus, DollarSign } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
@@ -14,6 +15,7 @@ export function TarifasPage() {
   const queryClient = useQueryClient();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<Tarifa | null>(null);
+  const [deletingItem, setDeletingItem] = useState<{ id: number; name: string } | null>(null);
 
   const [tipoCarga, setTipoCarga] = useState("");
   const [precioPorKg, setPrecioPorKg] = useState<number>(5);
@@ -87,9 +89,7 @@ export function TarifasPage() {
   };
 
   const handleDelete = (id: number, name: string) => {
-    if (window.confirm(`¿Está seguro de dar de baja la tarifa "${name}"?`)) {
-      deleteMutation.mutate(id);
-    }
+    setDeletingItem({ id, name });
   };
 
   return (
@@ -232,6 +232,28 @@ export function TarifasPage() {
           </div>
         </form>
       </Modal>
+
+      {/* Dialogo personalizado de confirmacion para baja logica */}
+      <ConfirmDialog
+        isOpen={!!deletingItem}
+        onClose={() => setDeletingItem(null)}
+        onConfirm={() => {
+          if (deletingItem) {
+            deleteMutation.mutate(deletingItem.id, {
+              onSettled: () => setDeletingItem(null),
+            });
+          }
+        }}
+        title="Dar de baja tarifa"
+        message={
+          <span>
+            ¿Está seguro de dar de baja la tarifa <strong>"{deletingItem?.name}"</strong>?
+          </span>
+        }
+        description="Esta acción desactivará la tarifa en el sistema mediante baja lógica."
+        confirmText="Dar de baja"
+        isLoading={deleteMutation.isPending}
+      />
     </div>
   );
 }

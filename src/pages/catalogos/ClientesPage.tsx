@@ -4,6 +4,7 @@ import { clientesApi } from "@/api/catalogos";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Modal } from "@/components/ui/Modal";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Edit2, Trash2, Search, Plus, UserCheck } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
 import { toast } from "sonner";
@@ -14,6 +15,7 @@ export function ClientesPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<Cliente | null>(null);
+  const [deletingItem, setDeletingItem] = useState<{ id: number; name: string } | null>(null);
 
   const [nit, setNit] = useState("");
   const [nombre, setNombre] = useState("");
@@ -77,9 +79,7 @@ export function ClientesPage() {
   };
 
   const handleDelete = (id: number, name: string) => {
-    if (window.confirm(`¿Está seguro de dar de baja al cliente "${name}"?`)) {
-      deleteMutation.mutate(id);
-    }
+    setDeletingItem({ id, name });
   };
 
   const filtered = clientes.filter((c) =>
@@ -232,6 +232,28 @@ export function ClientesPage() {
           </div>
         </form>
       </Modal>
+
+      {/* Dialogo personalizado de confirmacion para baja logica */}
+      <ConfirmDialog
+        isOpen={!!deletingItem}
+        onClose={() => setDeletingItem(null)}
+        onConfirm={() => {
+          if (deletingItem) {
+            deleteMutation.mutate(deletingItem.id, {
+              onSettled: () => setDeletingItem(null),
+            });
+          }
+        }}
+        title="Dar de baja cliente"
+        message={
+          <span>
+            ¿Está seguro de dar de baja al cliente <strong>"{deletingItem?.name}"</strong>?
+          </span>
+        }
+        description="Esta acción desactivará el registro del cliente en el padrón mediante baja lógica."
+        confirmText="Dar de baja"
+        isLoading={deleteMutation.isPending}
+      />
     </div>
   );
 }

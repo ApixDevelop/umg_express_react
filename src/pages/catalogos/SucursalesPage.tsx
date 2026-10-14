@@ -4,6 +4,7 @@ import { sucursalesApi } from "@/api/catalogos";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Modal } from "@/components/ui/Modal";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Edit2, Trash2, Search, Plus, Building2 } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
 import { toast } from "sonner";
@@ -14,6 +15,7 @@ export function SucursalesPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<Sucursal | null>(null);
+  const [deletingItem, setDeletingItem] = useState<{ id: number; name: string } | null>(null);
 
   const [nombre, setNombre] = useState("");
   const [direccion, setDireccion] = useState("");
@@ -74,9 +76,7 @@ export function SucursalesPage() {
   };
 
   const handleDelete = (id: number, name: string) => {
-    if (window.confirm(`¿Está seguro de dar de baja la sucursal "${name}"?`)) {
-      deleteMutation.mutate(id);
-    }
+    setDeletingItem({ id, name });
   };
 
   const filtered = sucursales.filter((s) =>
@@ -219,6 +219,28 @@ export function SucursalesPage() {
           </div>
         </form>
       </Modal>
+
+      {/* Dialogo personalizado de confirmacion para baja logica */}
+      <ConfirmDialog
+        isOpen={!!deletingItem}
+        onClose={() => setDeletingItem(null)}
+        onConfirm={() => {
+          if (deletingItem) {
+            deleteMutation.mutate(deletingItem.id, {
+              onSettled: () => setDeletingItem(null),
+            });
+          }
+        }}
+        title="Dar de baja sucursal"
+        message={
+          <span>
+            ¿Está seguro de dar de baja la sucursal <strong>"{deletingItem?.name}"</strong>?
+          </span>
+        }
+        description="Esta agencia no estará disponible para emisión de nuevas guías o despachos."
+        confirmText="Dar de baja"
+        isLoading={deleteMutation.isPending}
+      />
     </div>
   );
 }
