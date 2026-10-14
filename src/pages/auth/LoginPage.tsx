@@ -2,7 +2,8 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router";
 import { useAuthStore } from "@/store/authStore";
 import { authApi } from "@/api/auth";
-import { Package, Lock, User } from "lucide-react";
+import { Package, Lock, User, Sun, Moon, Monitor } from "lucide-react";
+import { useThemeStore } from "@/store/themeStore";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { toast } from "sonner";
@@ -13,6 +14,7 @@ export function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const { setAuth } = useAuthStore();
   const navigate = useNavigate();
+  const { theme, resolvedTheme, toggleTheme } = useThemeStore();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,7 +42,23 @@ export function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-bg flex flex-col justify-center items-center p-4">
+    <div className="min-h-screen bg-bg flex flex-col justify-center items-center p-4 relative">
+      <div className="absolute top-4 right-4">
+        <button
+          onClick={toggleTheme}
+          title={"Tema: " + (theme === "system" ? "Auto" : resolvedTheme === "dark" ? "Oscuro" : "Claro")}
+          className="h-8 px-2.5 rounded-control border border-border bg-surface text-text hover:bg-surface-hover flex items-center gap-1.5 text-xs cursor-pointer active:scale-[0.97] transition-all"
+        >
+          {theme === "system" ? (
+            <Monitor className="w-3.5 h-3.5 text-accent" />
+          ) : resolvedTheme === "dark" ? (
+            <Moon className="w-3.5 h-3.5 text-accent" />
+          ) : (
+            <Sun className="w-3.5 h-3.5 text-accent" />
+          )}
+          <span className="text-[11px] text-text-muted capitalize">{theme === "system" ? "Auto" : resolvedTheme}</span>
+        </button>
+      </div>
       <div className="w-full max-w-sm">
         {/* Brand */}
         <div className="flex items-center justify-center gap-2.5 mb-6">

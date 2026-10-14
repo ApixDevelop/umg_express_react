@@ -26,14 +26,17 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     ref
   ) => {
     const baseStyles =
-      "inline-flex items-center justify-center font-medium transition-colors duration-150 rounded-panel disabled:opacity-50 disabled:cursor-not-allowed select-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-1 focus:ring-offset-bg";
+      "inline-flex items-center justify-center font-medium select-none cursor-pointer rounded-panel " +
+      "transition-all duration-150 ease-out active:scale-[0.98] active:duration-75 " +
+      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1 focus-visible:ring-offset-bg " +
+      "disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none disabled:transform-none";
 
     const variants = {
-      primary: "bg-accent text-on-accent hover:opacity-90 active:opacity-80",
-      secondary: "bg-transparent text-text border border-border-input hover:bg-surface-hover",
-      outline: "bg-transparent text-text border border-border-input hover:bg-surface-hover",
-      ghost: "bg-transparent text-text-muted hover:text-text hover:bg-surface-hover",
-      danger: "bg-transparent text-danger border border-danger/40 hover:bg-danger/10",
+      primary: "bg-accent text-on-accent hover:brightness-105 active:brightness-95 shadow-sm shadow-accent/10",
+      secondary: "bg-surface text-text border border-border-input hover:bg-surface-hover hover:border-border-input/80 active:bg-surface",
+      outline: "bg-transparent text-text border border-border-input hover:bg-surface-hover hover:border-border-input/80",
+      ghost: "bg-transparent text-text-muted hover:text-text hover:bg-surface-hover active:bg-surface",
+      danger: "bg-transparent text-danger border border-danger/40 hover:bg-danger/10 hover:border-danger/60 active:bg-danger/15",
     };
 
     const sizes = {
@@ -51,7 +54,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         {...props}
       >
         {isLoading ? (
-          <Loader2 className="w-3.5 h-3.5 animate-spin text-current" />
+          <Loader2 className="w-3.5 h-3.5 animate-spin text-current shrink-0" />
         ) : (
           leftIcon
         )}

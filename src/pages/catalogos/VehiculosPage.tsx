@@ -6,7 +6,8 @@ import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { StatusBadge } from "@/components/ui/Badge";
 import { Modal } from "@/components/ui/Modal";
-import { Edit2, Trash2, Search } from "lucide-react";
+import { Edit2, Trash2, Search, Plus, Truck } from "lucide-react";
+import { Badge } from "@/components/ui/Badge";
 import { toast } from "sonner";
 import type { Vehiculo, EstadoVehiculo } from "@/types";
 
@@ -107,9 +108,16 @@ export function VehiculosPage() {
     <div className="space-y-4">
       {/* Cabecera */}
       <div className="flex items-center justify-between">
-        <h1 className="text-[20px] font-semibold text-text">Flota vehicular</h1>
-        <Button variant="primary" size="sm" onClick={openCreate}>
-          Nuevo vehículo
+        <div className="flex items-center gap-2">
+          <h1 className="text-[20px] font-semibold text-text tracking-tight">Flota Vehicular</h1>
+          <Badge variant="default">{vehiculos.length} unidades</Badge>
+        </div>
+        <p className="text-[12px] text-text-muted mt-0.5">
+          Parque vehicular pesado, capacidad de estiba y estado operativo en patio.
+        </p>
+        <Button variant="primary" size="sm" onClick={openCreate} className="gap-1.5 active:scale-[0.97]">
+          <Plus className="w-3.5 h-3.5" />
+          <span>Nuevo vehículo</span>
         </Button>
       </div>
 
@@ -162,14 +170,14 @@ export function VehiculosPage() {
                       <div className="flex items-center justify-end gap-1">
                         <button
                           onClick={() => openEdit(v)}
-                          className="p-1 text-text-muted hover:text-text hover:bg-surface-hover rounded transition-colors cursor-pointer"
+                          className="p-1 text-text-muted hover:text-text hover:bg-surface-hover rounded transition-colors cursor-pointer active:scale-[0.92]"
                           title="Editar"
                         >
                           <Edit2 className="w-3.5 h-3.5" />
                         </button>
                         <button
                           onClick={() => handleDelete(v.id, v.placa)}
-                          className="p-1 text-text-muted hover:text-danger hover:bg-danger/10 rounded transition-colors cursor-pointer"
+                          className="p-1 text-text-muted hover:text-danger hover:bg-danger/10 rounded transition-colors cursor-pointer active:scale-[0.92]"
                           title="Eliminar"
                         >
                           <Trash2 className="w-3.5 h-3.5" />

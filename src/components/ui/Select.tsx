@@ -25,9 +25,9 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
             ref={ref}
             id={selectId}
             className={cn(
-              "w-full h-[34px] bg-surface text-text text-[13px] rounded-control border border-border-input px-3 transition-colors duration-150 appearance-none cursor-pointer",
-              "focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-1 focus:ring-offset-bg",
-              error && "border-danger focus:ring-danger",
+              "w-full h-[34px] bg-surface text-text text-[13px] rounded-control border border-border-input px-3 transition-all duration-150 appearance-none cursor-pointer",
+              "focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/50 focus:bg-surface-hover/30",
+              error && "border-danger focus:border-danger",
               className
             )}
             {...props}
@@ -46,7 +46,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
             </svg>
           </div>
         </div>
-        {error && <p className="text-[12px] text-danger">{error}</p>}
+        {error && <p className="text-[12px] text-danger animate-in fade-in duration-150">{error}</p>}
         {helperText && !error && <p className="text-[12px] text-text-muted">{helperText}</p>}
       </div>
     );

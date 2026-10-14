@@ -1,50 +1,81 @@
 @import "tailwindcss";
 
 @theme {
-  --color-bg: #111215;
-  --color-surface: #18191d;
-  --color-surface-hover: #222328;
-  --color-border: #2a2c33;
-  --color-border-input: #3a3d46;
-  --color-text: #ededf0;
-  --color-text-muted: #8b8e99;
-  --color-text-faint: #565963;
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-hover: var(--surface-hover);
+  --color-border: var(--border);
+  --color-border-input: var(--border-input);
+  --color-text: var(--text);
+  --color-text-muted: var(--text-muted);
+  --color-text-faint: var(--text-faint);
 
-  --color-accent: #f68e00;
-  --color-accent-text: #f68e00;
-  --color-on-accent: #1a1100;
-  --color-ok: #4fb286;
-  --color-warn: #d9a23f;
-  --color-danger: #ec6a5e;
-  --color-info: #8e9bd6;
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-text: var(--accent);
+  --color-on-accent: var(--on-accent);
+  --color-ok: var(--ok);
+  --color-warn: var(--warn);
+  --color-danger: var(--danger);
+  --color-info: var(--info);
 
   --radius-panel: 6px;
   --radius-control: 4px;
 }
 
 :root {
-  --bg: #111215;
-  --surface: #18191d;
-  --surface-hover: #222328;
-  --border: #2a2c33;
-  --border-input: #3a3d46;
-  --text: #ededf0;
-  --text-muted: #8b8e99;
-  --text-faint: #565963;
+  /* LIGHT MODE (Swiss Logistics Blueprint - Alto Contraste Diurno) */
+  --bg: #f5f6f9;
+  --surface: #ffffff;
+  --surface-hover: #eef1f5;
+  --border: #e1e4ec;
+  --border-input: #cfd4df;
+  --text: #0f131a;
+  --text-muted: #575e6d;
+  --text-faint: #8991a1;
 
-  --accent: #f68e00;
-  --accent-text: #f68e00;
-  --on-accent: #1a1100;
-  --ok: #4fb286;
-  --warn: #d9a23f;
-  --danger: #ec6a5e;
-  --info: #8e9bd6;
+  --accent: #ea580c;
+  --accent-hover: #c2410c;
+  --on-accent: #ffffff;
+  --ok: #059669;
+  --warn: #d97706;
+  --danger: #dc2626;
+  --info: #2563eb;
 
   --radius: 6px;
   --radius-sm: 4px;
-  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --sidebar-w: 232px;
   --topbar-h: 48px;
+
+  /* Emil Kowalski physics tokens */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+.dark {
+  /* DARK MODE (Tactical Telemetry Cockpit - Control Nocturno) */
+  --bg: #0c0d11;
+  --surface: #131419;
+  --surface-hover: #1c1e26;
+  --border: #24262f;
+  --border-input: #343743;
+  --text: #f0f2f5;
+  --text-muted: #8b909e;
+  --text-faint: #545763;
+
+  --accent: #f68e00;
+  --accent-hover: #ff9d1a;
+  --on-accent: #140d00;
+  --ok: #10b981;
+  --warn: #f59e0b;
+  --danger: #f43f5e;
+  --info: #3b82f6;
+}
+
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 body {
@@ -54,7 +85,13 @@ body {
   color: var(--text);
   font-size: 14px;
   line-height: 1.5;
-  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  transition: background-color 200ms var(--ease-out), color 200ms var(--ease-out);
+}
+
+::selection {
+  background-color: rgba(246, 142, 0, 0.28);
+  color: var(--text);
 }
 
 .tabular-nums {
@@ -75,6 +112,11 @@ body {
 }
 ::-webkit-scrollbar-thumb:hover {
   background: var(--border-input);
+}
+
+@keyframes pulse-subtle {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.08); }
 }
 
 @media (prefers-reduced-motion: reduce) {

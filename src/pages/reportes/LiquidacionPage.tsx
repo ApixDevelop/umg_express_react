@@ -2,46 +2,55 @@ import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { reportesApi } from "@/api/reportes";
 import { Button } from "@/components/ui/Button";
-import { StatusBadge } from "@/components/ui/Badge";
+import { Badge, StatusBadge } from "@/components/ui/Badge";
 import { formatCurrency, formatWeight } from "@/lib/utils";
-import { toast } from "sonner";
+import type { LiquidacionInfo } from "@/types";
+import {
+  DollarSign,
+  TrendingUp,
+  FileSpreadsheet,
+  Printer,
+  Download,
+  Building2,
+  Route,
+  Search,
+  CheckCircle2,
+  Layers,
+  Scale
+} from "lucide-react";
+
+type TabOption = "resumen" | "sucursales" | "rutas" | "estados" | "detalle";
 
 export function LiquidacionPage() {
-  const [activeTab, setActiveTab] = useState<"resumen" | "sucursales" | "rutas" | "estados" | "detalle">("resumen");
+  const [activeTab, setActiveTab] = useState<TabOption>("resumen");
+  const [filterQuery, setFilterQuery] = useState("");
 
-  const { data, isLoading, isError, error } = useQuery({
+  const {
+    data: liquidacion,
+    isLoading,
+    isError,
+    error,
+  } = useQuery<LiquidacionInfo>({
     queryKey: ["liquidacion"],
     queryFn: () => reportesApi.obtenerLiquidacion(),
   });
 
-  const exportCSV = () => {
-    if (!data?.desgloseGuias) return;
-    const headers = "NumeroGuia,Estado,SucursalOrigen,IdRuta,IdRemitente,IdDestinatario,PesoFacturableKg,CostoTotal\n";
-    const rows = data.desgloseGuias
-      .map(
-        (g) =>
-          `${g.numeroGuia},${g.estado},"${g.sucursalOrigen || ""}",${g.idRuta},${g.idClienteRemitente},${g.idClienteDestinatario},${g.pesoFacturableKg},${g.costoTotal}`
-      )
-      .join("\n");
-    const blob = new Blob([headers + rows], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.setAttribute("download", `liquidacion_umg_express_${new Date().toISOString().slice(0, 10)}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    toast.success("Archivo CSV exportado exitosamente");
-  };
-
   if (isLoading) {
-    return <div className="p-8 text-center text-text-muted text-[13px]">Calculando liquidación financiera...</div>;
+    return (
+      <div className="rounded-panel border border-border bg-surface p-12 text-center text-[13px] text-text-muted flex flex-col items-center gap-2">
+        <div className="w-6 h-6 border-2 border-accent border-t-transparent rounded-full animate-spin" />
+        <span>Consolidando y auditando liquidación financiera...</span>
+      </div>
+    );
   }
 
-  if (isError) {
+  if (isError || !liquidacion) {
     return (
-      <div className="rounded-panel border border-border bg-surface p-6 text-center text-[13px] text-danger">
-        {(error as any)?.message || "Error al cargar reporte de liquidación financiera"}
+      <div className="rounded-panel border border-danger/30 bg-danger/5 p-6 text-center space-y-2">
+        <h3 className="text-[14px] font-semibold text-danger">Error al cargar la liquidación</h3>
+        <p className="text-[13px] text-text-muted">
+          {(error as any)?.message || "No se pudo recuperar la información contable del servidor."}
+        </p>
       </div>
     );
   }
@@ -52,153 +61,310 @@ export function LiquidacionPage() {
     resumenPorRuta = [],
     resumenPorSucursalOrigen = [],
     desgloseGuias = [],
-  } = data || ({} as any);
+  } = liquidacion;
 
-  const totalGuiasSucursales = resumenPorSucursalOrigen.reduce((acc: number, s: any) => acc + (s.cantidadGuias || 0), 0);
-  const totalFacturadoSucursales = resumenPorSucursalOrigen.reduce((acc: number, s: any) => acc + (s.importeTotal || 0), 0);
+  const totalFacturado = resumenFinanciero.importeTotalFacturado || 0;
+  const totalGuias = resumenFinanciero.totalGuiasConsideradas || 0;
+  const cobradoConfirmado = resumenFinanciero.cobradoConfirmado || 0;
+  const promedioPorGuia = totalGuias > 0 ? totalFacturado / totalGuias : 0;
+  const porcentajeCobrado = totalFacturado > 0 ? Math.min(100, (cobradoConfirmado / totalFacturado) * 100) : 100;
 
-  const totalGuiasRutas = resumenPorRuta.reduce((acc: number, r: any) => acc + (r.cantidadGuias || 0), 0);
-  const totalFacturadoRutas = resumenPorRuta.reduce((acc: number, r: any) => acc + (r.importeTotal || 0), 0);
+  const totalPesoDesglose = desgloseGuias.reduce((acc, g) => acc + (g.pesoFacturableKg || 0), 0);
+  const totalFleteDesglose = desgloseGuias.reduce((acc, g) => acc + (g.costoTotal || 0), 0);
 
-  const totalPesoDesglose = desgloseGuias.reduce((acc: number, g: any) => acc + (g.pesoFacturableKg || 0), 0);
-  const totalFleteDesglose = desgloseGuias.reduce((acc: number, g: any) => acc + (g.costoTotal || 0), 0);
+  // Filtro de auditoría de guías
+  const filteredGuias = desgloseGuias.filter((g) => {
+    if (!filterQuery) return true;
+    const q = filterQuery.toLowerCase();
+    return (
+      g.numeroGuia.toString().includes(q) ||
+      (g.sucursalOrigen && g.sucursalOrigen.toLowerCase().includes(q)) ||
+      (g.estado && g.estado.toLowerCase().includes(q))
+    );
+  });
+
+  const exportCSV = () => {
+    const headers = ["No. Guia", "Sucursal Origen", "ID Ruta", "Estado", "Peso (kg)", "Costo (GTQ)"];
+    const rows = desgloseGuias.map((g) => [
+      g.numeroGuia,
+      `"${g.sucursalOrigen || "-"}"`,
+      g.idRuta,
+      g.estado,
+      g.pesoFacturableKg,
+      g.costoTotal.toFixed(2),
+    ]);
+
+    const csvContent = [
+      `"LIQUIDACION FINANCIERA UMG EXPRESS"`,
+      `"Fecha de Generacion: ${new Date().toISOString()}"`,
+      `"Facturacion Total: ${totalFacturado.toFixed(2)} GTQ"`,
+      `"Total Guias Auditadas: ${totalGuias}"`,
+      "",
+      headers.join(","),
+      ...rows.map((r) => r.join(",")),
+    ].join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `liquidacion_financiera_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   return (
     <div className="space-y-4">
-      {/* Cabecera */}
-      <div className="flex items-center justify-between">
-        <h1 className="text-[20px] font-semibold text-text">Liquidación financiera</h1>
-        <div className="flex items-center gap-2 no-print">
+      {/* Cabecera Principal */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1 border-b border-border no-print">
+        <div>
+          <div className="flex items-center gap-2">
+            <h1 className="text-[20px] font-semibold text-text tracking-tight">Liquidación Financiera</h1>
+            <Badge variant="success">Conciliación Contable</Badge>
+          </div>
+          <p className="text-[13px] text-text-muted mt-0.5">
+            Arqueo de ingresos, facturación por sucursal y conciliación de fletes en Quetzales (GTQ).
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2">
           <Button
-            variant="secondary"
+            variant="outline"
             size="sm"
             onClick={exportCSV}
+            className="gap-1.5"
           >
-            Exportar CSV
+            <Download className="w-3.5 h-3.5" />
+            <span>Exportar CSV</span>
           </Button>
           <Button
-            variant="secondary"
+            variant="primary"
             size="sm"
             onClick={() => window.print()}
+            className="gap-1.5 shadow-sm"
           >
-            Imprimir
+            <Printer className="w-3.5 h-3.5" />
+            <span>Imprimir Arqueo</span>
           </Button>
         </div>
       </div>
 
-      {/* Franja unificada de métricas */}
-      <div className="rounded-panel border border-border bg-surface grid grid-cols-2 lg:grid-cols-4 divide-y lg:divide-y-0 lg:divide-x divide-border">
-        <div className="p-4 space-y-1">
-          <div className="text-[12px] text-text-muted">Importe facturado</div>
-          <div className="text-[24px] font-semibold text-text tabular-nums leading-none">
-            {formatCurrency(resumenFinanciero?.importeTotalFacturado)}
+      {/* Tarjetas de Telemetría Contable (KPIs) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        {/* KPI 1: Facturación Total */}
+        <div className="p-4 rounded-panel border border-border bg-surface flex flex-col justify-between">
+          <div className="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-text-muted">
+            <span>Facturación Consolidada</span>
+            <div className="w-6 h-6 rounded bg-accent/10 text-accent flex items-center justify-center font-bold">
+              Q
+            </div>
           </div>
-          <div className="text-[12px] text-text-faint">total registrado</div>
+          <div className="my-2">
+            <div className="font-mono font-bold text-[22px] text-text tracking-tight">
+              {formatCurrency(totalFacturado)}
+            </div>
+            <p className="text-[11px] text-ok flex items-center gap-1 mt-0.5">
+              <CheckCircle2 className="w-3 h-3" />
+              <span>Auditoría de fletes activa</span>
+            </p>
+          </div>
+          <div className="text-[11px] text-text-faint font-mono pt-1.5 border-t border-border/50">
+            Base gravable institucional
+          </div>
         </div>
 
-        <div className="p-4 space-y-1">
-          <div className="text-[12px] text-text-muted">Guías contabilizadas</div>
-          <div className="text-[24px] font-semibold text-text tabular-nums leading-none">
-            {resumenFinanciero?.totalGuiasConsideradas ?? 0}
+        {/* KPI 2: Total Guías */}
+        <div className="p-4 rounded-panel border border-border bg-surface flex flex-col justify-between">
+          <div className="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-text-muted">
+            <span>Envíos Auditados</span>
+            <div className="w-6 h-6 rounded bg-info/10 text-info flex items-center justify-center">
+              <FileSpreadsheet className="w-3.5 h-3.5" />
+            </div>
           </div>
-          <div className="text-[12px] text-text-faint">activas</div>
+          <div className="my-2">
+            <div className="font-mono font-bold text-[22px] text-text tracking-tight">
+              {totalGuias} <span className="text-[13px] font-normal text-text-muted">guías</span>
+            </div>
+            <p className="text-[11px] text-text-muted mt-0.5">
+              Promedio: <strong className="font-mono text-text">{formatCurrency(promedioPorGuia)}</strong> / envío
+            </p>
+          </div>
+          <div className="text-[11px] text-text-faint font-mono pt-1.5 border-t border-border/50">
+            {resumenFinanciero.totalGuiasInactivas || 0} canceladas / anuladas
+          </div>
         </div>
 
-        <div className="p-4 space-y-1">
-          <div className="text-[12px] text-text-muted">Guías inactivas</div>
-          <div className="text-[24px] font-semibold text-text tabular-nums leading-none">
-            {resumenFinanciero?.totalGuiasInactivas ?? 0}
+        {/* KPI 3: Cobrado Confirmado */}
+        <div className="p-4 rounded-panel border border-border bg-surface flex flex-col justify-between">
+          <div className="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-text-muted">
+            <span>Cobranza Confirmada</span>
+            <div className="w-6 h-6 rounded bg-ok/10 text-ok flex items-center justify-center">
+              <DollarSign className="w-3.5 h-3.5" />
+            </div>
           </div>
-          <div className="text-[12px] text-text-faint">bajas lógicas</div>
+          <div className="my-2">
+            <div className="font-mono font-bold text-[22px] text-ok tracking-tight">
+              {formatCurrency(cobradoConfirmado)}
+            </div>
+            <div className="w-full bg-surface-hover h-1.5 rounded-full overflow-hidden mt-1.5">
+              <div
+                className="bg-ok h-full rounded-full transition-all duration-500"
+                style={{ width: `${porcentajeCobrado}%` }}
+              />
+            </div>
+          </div>
+          <div className="text-[11px] text-text-faint font-mono pt-1.5 border-t border-border/50">
+            {porcentajeCobrado.toFixed(1)}% tasa de efectividad de cobro
+          </div>
         </div>
 
-        <div className="p-4 space-y-1">
-          <div className="text-[12px] text-text-muted">Cobro confirmado</div>
-          <div className="text-[24px] font-semibold text-text tabular-nums leading-none">
-            {formatCurrency(resumenFinanciero?.cobradoConfirmado)}
+        {/* KPI 4: Masa Logística Facturada */}
+        <div className="p-4 rounded-panel border border-border bg-surface flex flex-col justify-between">
+          <div className="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-text-muted">
+            <span>Masa Logística Facturada</span>
+            <div className="w-6 h-6 rounded bg-accent/10 text-accent flex items-center justify-center">
+              <Scale className="w-3.5 h-3.5" />
+            </div>
           </div>
-          <div className="text-[12px] text-text-faint">entregadas</div>
+          <div className="my-2">
+            <div className="font-mono font-bold text-[22px] text-text tracking-tight">
+              {formatWeight(totalPesoDesglose)}
+            </div>
+            <p className="text-[11px] text-text-muted mt-0.5">
+              Tarifa media:{" "}
+              <strong className="font-mono text-text">
+                {totalPesoDesglose > 0 ? (totalFacturado / totalPesoDesglose).toFixed(2) : "0.00"} Q/kg
+              </strong>
+            </p>
+          </div>
+          <div className="text-[11px] text-text-faint font-mono pt-1.5 border-t border-border/50">
+            Basado en peso facturable auditado
+          </div>
         </div>
       </div>
 
-      {/* Pestañas sobrias */}
-      <div className="flex items-center gap-1 border-b border-border pb-2 text-[12px] no-print overflow-x-auto">
+      {/* Selector de Pestañas con Tactile Micro-Interactions */}
+      <div className="flex items-center gap-1.5 border-b border-border pb-2 overflow-x-auto no-print">
         <button
           onClick={() => setActiveTab("resumen")}
-          className={`px-2.5 py-1 rounded-control transition-colors cursor-pointer ${
-            activeTab === "resumen" ? "bg-surface-hover text-text font-medium" : "text-text-muted hover:text-text"
+          className={`px-3 py-1.5 rounded-control text-[12px] font-medium transition-all cursor-pointer whitespace-nowrap active:scale-[0.97] ${
+            activeTab === "resumen"
+              ? "bg-accent text-white shadow-sm"
+              : "text-text-muted hover:text-text hover:bg-surface-hover"
           }`}
         >
-          Resumen
+          Resumen Consolidado
         </button>
         <button
           onClick={() => setActiveTab("sucursales")}
-          className={`px-2.5 py-1 rounded-control transition-colors cursor-pointer ${
-            activeTab === "sucursales" ? "bg-surface-hover text-text font-medium" : "text-text-muted hover:text-text"
+          className={`px-3 py-1.5 rounded-control text-[12px] font-medium transition-all cursor-pointer whitespace-nowrap active:scale-[0.97] ${
+            activeTab === "sucursales"
+              ? "bg-accent text-white shadow-sm"
+              : "text-text-muted hover:text-text hover:bg-surface-hover"
           }`}
         >
-          Por sucursal ({resumenPorSucursalOrigen.length})
+          Por Sucursal ({resumenPorSucursalOrigen.length})
         </button>
         <button
           onClick={() => setActiveTab("rutas")}
-          className={`px-2.5 py-1 rounded-control transition-colors cursor-pointer ${
-            activeTab === "rutas" ? "bg-surface-hover text-text font-medium" : "text-text-muted hover:text-text"
+          className={`px-3 py-1.5 rounded-control text-[12px] font-medium transition-all cursor-pointer whitespace-nowrap active:scale-[0.97] ${
+            activeTab === "rutas"
+              ? "bg-accent text-white shadow-sm"
+              : "text-text-muted hover:text-text hover:bg-surface-hover"
           }`}
         >
-          Por ruta ({resumenPorRuta.length})
+          Por Ruta ({resumenPorRuta.length})
         </button>
         <button
           onClick={() => setActiveTab("estados")}
-          className={`px-2.5 py-1 rounded-control transition-colors cursor-pointer ${
-            activeTab === "estados" ? "bg-surface-hover text-text font-medium" : "text-text-muted hover:text-text"
+          className={`px-3 py-1.5 rounded-control text-[12px] font-medium transition-all cursor-pointer whitespace-nowrap active:scale-[0.97] ${
+            activeTab === "estados"
+              ? "bg-accent text-white shadow-sm"
+              : "text-text-muted hover:text-text hover:bg-surface-hover"
           }`}
         >
-          Por estado ({guiasPorEstado.length})
+          Por Estado ({guiasPorEstado.length})
         </button>
         <button
           onClick={() => setActiveTab("detalle")}
-          className={`px-2.5 py-1 rounded-control transition-colors cursor-pointer ${
-            activeTab === "detalle" ? "bg-surface-hover text-text font-medium" : "text-text-muted hover:text-text"
+          className={`px-3 py-1.5 rounded-control text-[12px] font-medium transition-all cursor-pointer whitespace-nowrap active:scale-[0.97] ${
+            activeTab === "detalle"
+              ? "bg-accent text-white shadow-sm"
+              : "text-text-muted hover:text-text hover:bg-surface-hover"
           }`}
         >
-          Desglose ({desgloseGuias.length})
+          Auditoría de Guías ({desgloseGuias.length})
         </button>
       </div>
 
-      {/* Tabla 1: Por Sucursal Origen */}
+      {/* Contenido: Tab Sucursales (o Resumen) */}
       {(activeTab === "resumen" || activeTab === "sucursales") && (
         <div className="rounded-panel border border-border bg-surface overflow-hidden">
-          <div className="px-4 py-3 border-b border-border">
-            <h2 className="text-[14px] font-semibold text-text">Ingresos por sucursal de origen</h2>
+          <div className="px-4 py-3 border-b border-border flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Building2 className="w-4 h-4 text-accent" />
+              <h2 className="text-[14px] font-semibold text-text">Ingresos Distribuidos por Sucursal de Origen</h2>
+            </div>
+            <span className="text-[12px] text-text-muted font-mono">
+              Total Sucursales: {resumenPorSucursalOrigen.length}
+            </span>
           </div>
+
           <div className="overflow-x-auto">
             <table className="w-full text-left text-[13px] border-collapse">
               <thead>
-                <tr className="border-b border-border text-text-muted text-[12px] font-medium">
-                  <th className="py-2 px-3 font-medium">ID</th>
-                  <th className="py-2 px-3 font-medium">Sucursal</th>
-                  <th className="py-2 px-3 text-right font-medium">Guías</th>
-                  <th className="py-2 px-3 text-right font-medium">Total facturado</th>
+                <tr className="border-b border-border bg-surface-hover/50 text-text-muted text-[11px] font-bold uppercase tracking-wider">
+                  <th className="py-2.5 px-4 font-semibold">ID</th>
+                  <th className="py-2.5 px-4 font-semibold">Sucursal Origen</th>
+                  <th className="py-2.5 px-4 text-right font-semibold">Guías Emitidas</th>
+                  <th className="py-2.5 px-4 font-semibold text-center w-40">Participación</th>
+                  <th className="py-2.5 px-4 text-right font-semibold">Total Facturado (GTQ)</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {resumenPorSucursalOrigen.map((s: any) => (
-                  <tr key={s.idSucursal} className="hover:bg-surface-hover transition-colors h-10">
-                    <td className="py-2 px-3 text-text-muted tabular-nums">#{s.idSucursal}</td>
-                    <td className="py-2 px-3 text-text">{s.nombre}</td>
-                    <td className="py-2 px-3 text-right text-text tabular-nums">{s.cantidadGuias}</td>
-                    <td className="py-2 px-3 text-right text-text font-medium tabular-nums">
-                      {formatCurrency(s.importeTotal)}
-                    </td>
-                  </tr>
-                ))}
+                {resumenPorSucursalOrigen.map((s) => {
+                  const pct = totalFacturado > 0 ? (s.importeTotal / totalFacturado) * 100 : 0;
+                  return (
+                    <tr key={s.idSucursal} className="hover:bg-surface-hover/40 transition-colors h-11">
+                      <td className="py-2.5 px-4 text-text-muted font-mono">#{s.idSucursal}</td>
+                      <td className="py-2.5 px-4 text-text font-medium">{s.nombre}</td>
+                      <td className="py-2.5 px-4 text-right text-text font-mono tabular-nums">
+                        {s.cantidadGuias}
+                      </td>
+                      <td className="py-2.5 px-4">
+                        <div className="flex items-center gap-2">
+                          <div className="flex-1 bg-surface-hover h-2 rounded-full overflow-hidden">
+                            <div
+                              className="bg-accent h-full rounded-full transition-all"
+                              style={{ width: `${pct}%` }}
+                            />
+                          </div>
+                          <span className="font-mono text-[11px] text-text-muted w-10 text-right">
+                            {pct.toFixed(1)}%
+                          </span>
+                        </div>
+                      </td>
+                      <td className="py-2.5 px-4 text-right text-text font-mono font-semibold tabular-nums">
+                        {formatCurrency(s.importeTotal)}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
-              <tfoot className="border-t-2 border-border bg-surface-hover text-text font-medium text-[13px]">
+              <tfoot className="border-t-2 border-border bg-surface-hover/80 text-text font-semibold text-[13px]">
                 <tr>
-                  <td className="py-2 px-3" colSpan={2}>Total consolidado</td>
-                  <td className="py-2 px-3 text-right tabular-nums">{totalGuiasSucursales}</td>
-                  <td className="py-2 px-3 text-right tabular-nums text-accent font-semibold">
-                    {formatCurrency(totalFacturadoSucursales)}
+                  <td className="py-2.5 px-4" colSpan={2}>
+                    Total Consolidado por Sucursales
+                  </td>
+                  <td className="py-2.5 px-4 text-right font-mono tabular-nums">
+                    {resumenPorSucursalOrigen.reduce((acc, s) => acc + s.cantidadGuias, 0)}
+                  </td>
+                  <td className="py-2.5 px-4 text-center font-mono text-[11px] text-text-muted">
+                    100.0%
+                  </td>
+                  <td className="py-2.5 px-4 text-right font-mono text-accent font-bold tabular-nums">
+                    {formatCurrency(totalFacturado)}
                   </td>
                 </tr>
               </tfoot>
@@ -207,38 +373,71 @@ export function LiquidacionPage() {
         </div>
       )}
 
-      {/* Tabla 2: Por Ruta */}
+      {/* Contenido: Tab Rutas (o Resumen) */}
       {(activeTab === "resumen" || activeTab === "rutas") && (
         <div className="rounded-panel border border-border bg-surface overflow-hidden">
-          <div className="px-4 py-3 border-b border-border">
-            <h2 className="text-[14px] font-semibold text-text">Ingresos agrupados por ruta</h2>
+          <div className="px-4 py-3 border-b border-border flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Route className="w-4 h-4 text-accent" />
+              <h2 className="text-[14px] font-semibold text-text">Ingresos Agrupados por Ruta Logística</h2>
+            </div>
+            <span className="text-[12px] text-text-muted font-mono">
+              Total Rutas: {resumenPorRuta.length}
+            </span>
           </div>
+
           <div className="overflow-x-auto">
             <table className="w-full text-left text-[13px] border-collapse">
               <thead>
-                <tr className="border-b border-border text-text-muted text-[12px] font-medium">
-                  <th className="py-2 px-3 font-medium">Ruta</th>
-                  <th className="py-2 px-3 text-right font-medium">Guías</th>
-                  <th className="py-2 px-3 text-right font-medium">Total facturado</th>
+                <tr className="border-b border-border bg-surface-hover/50 text-text-muted text-[11px] font-bold uppercase tracking-wider">
+                  <th className="py-2.5 px-4 font-semibold">ID Ruta</th>
+                  <th className="py-2.5 px-4 text-right font-semibold">Envíos Movilizados</th>
+                  <th className="py-2.5 px-4 font-semibold text-center w-40">Proporción</th>
+                  <th className="py-2.5 px-4 text-right font-semibold">Importe Facturado</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {resumenPorRuta.map((r: any) => (
-                  <tr key={r.idRuta} className="hover:bg-surface-hover transition-colors h-10">
-                    <td className="py-2 px-3 text-text tabular-nums">Ruta #{r.idRuta}</td>
-                    <td className="py-2 px-3 text-right text-text tabular-nums">{r.cantidadGuias}</td>
-                    <td className="py-2 px-3 text-right text-text font-medium tabular-nums">
-                      {formatCurrency(r.importeTotal)}
-                    </td>
-                  </tr>
-                ))}
+                {resumenPorRuta.map((r) => {
+                  const pct = totalFacturado > 0 ? (r.importeTotal / totalFacturado) * 100 : 0;
+                  return (
+                    <tr key={r.idRuta} className="hover:bg-surface-hover/40 transition-colors h-11">
+                      <td className="py-2.5 px-4 font-mono font-medium text-text">
+                        Ruta #{r.idRuta}
+                      </td>
+                      <td className="py-2.5 px-4 text-right text-text font-mono tabular-nums">
+                        {r.cantidadGuias}
+                      </td>
+                      <td className="py-2.5 px-4">
+                        <div className="flex items-center gap-2">
+                          <div className="flex-1 bg-surface-hover h-2 rounded-full overflow-hidden">
+                            <div
+                              className="bg-info h-full rounded-full transition-all"
+                              style={{ width: `${pct}%` }}
+                            />
+                          </div>
+                          <span className="font-mono text-[11px] text-text-muted w-10 text-right">
+                            {pct.toFixed(1)}%
+                          </span>
+                        </div>
+                      </td>
+                      <td className="py-2.5 px-4 text-right text-text font-mono font-semibold tabular-nums">
+                        {formatCurrency(r.importeTotal)}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
-              <tfoot className="border-t-2 border-border bg-surface-hover text-text font-medium text-[13px]">
+              <tfoot className="border-t-2 border-border bg-surface-hover/80 text-text font-semibold text-[13px]">
                 <tr>
-                  <td className="py-2 px-3">Total consolidado</td>
-                  <td className="py-2 px-3 text-right tabular-nums">{totalGuiasRutas}</td>
-                  <td className="py-2 px-3 text-right tabular-nums text-accent font-semibold">
-                    {formatCurrency(totalFacturadoRutas)}
+                  <td className="py-2.5 px-4">Consolidado por Red de Rutas</td>
+                  <td className="py-2.5 px-4 text-right font-mono tabular-nums">
+                    {resumenPorRuta.reduce((acc, r) => acc + r.cantidadGuias, 0)}
+                  </td>
+                  <td className="py-2.5 px-4 text-center font-mono text-[11px] text-text-muted">
+                    100.0%
+                  </td>
+                  <td className="py-2.5 px-4 text-right font-mono text-accent font-bold tabular-nums">
+                    {formatCurrency(resumenPorRuta.reduce((acc, r) => acc + r.importeTotal, 0))}
                   </td>
                 </tr>
               </tfoot>
@@ -247,28 +446,32 @@ export function LiquidacionPage() {
         </div>
       )}
 
-      {/* Tabla 3: Por Estado */}
+      {/* Contenido: Tab Estados */}
       {activeTab === "estados" && (
         <div className="rounded-panel border border-border bg-surface overflow-hidden">
           <div className="px-4 py-3 border-b border-border">
-            <h2 className="text-[14px] font-semibold text-text">Distribución de guías por estado</h2>
+            <h2 className="text-[14px] font-semibold text-text">Distribución Operativa por Estado de Guía</h2>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-left text-[13px] border-collapse">
               <thead>
-                <tr className="border-b border-border text-text-muted text-[12px] font-medium">
-                  <th className="py-2 px-3 font-medium">Estado</th>
-                  <th className="py-2 px-3 text-right font-medium">Cantidad de guías</th>
+                <tr className="border-b border-border bg-surface-hover/50 text-text-muted text-[11px] font-bold uppercase tracking-wider">
+                  <th className="py-2.5 px-4 font-semibold">Estado de Envío</th>
+                  <th className="py-2.5 px-4 text-right font-semibold">Cantidad de Guías</th>
+                  <th className="py-2.5 px-4 text-right font-semibold">Total Monetario (GTQ)</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {guiasPorEstado.map((e: any) => (
-                  <tr key={e.estado} className="hover:bg-surface-hover transition-colors h-10">
-                    <td className="py-2 px-3">
+                {guiasPorEstado.map((e) => (
+                  <tr key={e.estado} className="hover:bg-surface-hover/40 transition-colors h-11">
+                    <td className="py-2.5 px-4">
                       <StatusBadge status={e.estado} />
                     </td>
-                    <td className="py-2 px-3 text-right text-text font-medium tabular-nums">
-                      {e.cantidad}
+                    <td className="py-2.5 px-4 text-right text-text font-mono font-medium tabular-nums">
+                      {e.cantidadGuias}
+                    </td>
+                    <td className="py-2.5 px-4 text-right text-text font-mono font-semibold tabular-nums">
+                      {formatCurrency(e.importeTotal)}
                     </td>
                   </tr>
                 ))}
@@ -278,57 +481,72 @@ export function LiquidacionPage() {
         </div>
       )}
 
-      {/* Tabla 4: Desglose Individual de Guías */}
+      {/* Contenido: Tab Detalle / Auditoría */}
       {activeTab === "detalle" && (
-        <div className="rounded-panel border border-border bg-surface overflow-hidden">
-          <div className="px-4 py-3 border-b border-border">
-            <h2 className="text-[14px] font-semibold text-text">Desglose individual de guías auditadas</h2>
+        <div className="rounded-panel border border-border bg-surface overflow-hidden space-y-0">
+          <div className="p-3.5 border-b border-border flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h2 className="text-[14px] font-semibold text-text">Auditoría Individual de Guías ({filteredGuias.length})</h2>
+              <p className="text-[12px] text-text-muted">Registro pormenorizado para trazabilidad contable.</p>
+            </div>
+
+            <div className="relative w-full sm:w-64">
+              <Search className="w-3.5 h-3.5 text-text-muted absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <input
+                type="text"
+                value={filterQuery}
+                onChange={(e) => setFilterQuery(e.target.value)}
+                placeholder="Buscar por guía o sucursal..."
+                className="w-full h-8 bg-surface text-text text-[12px] rounded-control border border-border-input pl-8 pr-2.5 focus:outline-none focus:ring-2 focus:ring-accent"
+              />
+            </div>
           </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-[13px] border-collapse">
-              <thead>
-                <tr className="border-b border-border text-text-muted text-[12px] font-medium">
-                  <th className="py-2 px-3 font-medium">No. guía</th>
-                  <th className="py-2 px-3 font-medium">Sucursal origen</th>
-                  <th className="py-2 px-3 font-medium">Ruta</th>
-                  <th className="py-2 px-3 font-medium">Estado</th>
-                  <th className="py-2 px-3 text-right font-medium">Peso (kg)</th>
-                  <th className="py-2 px-3 text-right font-medium">Costo</th>
+
+          <div className="overflow-x-auto max-h-[500px]">
+            <table className="w-full text-left text-[12px] border-collapse">
+              <thead className="sticky top-0 bg-surface z-10">
+                <tr className="border-b border-border bg-surface-hover/70 text-text-muted text-[11px] font-bold uppercase tracking-wider">
+                  <th className="py-2.5 px-3 font-semibold">No. Guía</th>
+                  <th className="py-2.5 px-3 font-semibold">Sucursal Origen</th>
+                  <th className="py-2.5 px-3 font-semibold">Ruta</th>
+                  <th className="py-2.5 px-3 font-semibold">Estado</th>
+                  <th className="py-2.5 px-3 text-right font-semibold">Peso (kg)</th>
+                  <th className="py-2.5 px-3 text-right font-semibold">Flete Cobrado</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {desgloseGuias.map((g: any) => (
-                  <tr key={g.numeroGuia} className="hover:bg-surface-hover transition-colors h-10">
-                    <td className="py-2 px-3 text-text tabular-nums font-medium">
-                      {g.numeroGuia}
+                {filteredGuias.map((g) => (
+                  <tr key={g.numeroGuia} className="hover:bg-surface-hover/40 transition-colors h-9">
+                    <td className="py-2 px-3 font-mono font-bold text-text tabular-nums">
+                      #{g.numeroGuia}
                     </td>
-                    <td className="py-2 px-3 text-text">
-                      {g.sucursalOrigen || `Suc #${g.idRuta}`}
+                    <td className="py-2 px-3 text-text truncate max-w-[150px]">
+                      {g.sucursalOrigen || `Sucursal #${g.idRuta}`}
                     </td>
-                    <td className="py-2 px-3 text-text-muted tabular-nums">
+                    <td className="py-2 px-3 text-text-muted font-mono">
                       Ruta #{g.idRuta}
                     </td>
                     <td className="py-2 px-3">
                       <StatusBadge status={g.estado} />
                     </td>
-                    <td className="py-2 px-3 text-right text-text tabular-nums">
+                    <td className="py-2 px-3 text-right font-mono text-text tabular-nums">
                       {formatWeight(g.pesoFacturableKg)}
                     </td>
-                    <td className="py-2 px-3 text-right text-text font-medium tabular-nums">
+                    <td className="py-2 px-3 text-right font-mono font-semibold text-text tabular-nums">
                       {formatCurrency(g.costoTotal)}
                     </td>
                   </tr>
                 ))}
               </tbody>
-              <tfoot className="border-t-2 border-border bg-surface-hover text-text font-medium text-[13px]">
+              <tfoot className="sticky bottom-0 bg-surface-hover border-t-2 border-border text-text font-semibold text-[12px]">
                 <tr>
-                  <td className="py-2 px-3" colSpan={4}>
-                    Total ({desgloseGuias.length} guías)
+                  <td className="py-2.5 px-3" colSpan={4}>
+                    Total ({filteredGuias.length} guías filtradas)
                   </td>
-                  <td className="py-2 px-3 text-right tabular-nums">
+                  <td className="py-2.5 px-3 text-right font-mono tabular-nums">
                     {formatWeight(totalPesoDesglose)}
                   </td>
-                  <td className="py-2 px-3 text-right tabular-nums text-accent font-semibold">
+                  <td className="py-2.5 px-3 text-right font-mono text-accent font-bold tabular-nums">
                     {formatCurrency(totalFleteDesglose)}
                   </td>
                 </tr>
@@ -337,6 +555,22 @@ export function LiquidacionPage() {
           </div>
         </div>
       )}
+
+      {/* Bloque Legal de Auditoría Contable (para Impresión) */}
+      <div className="pt-8 border-t border-border hidden print:block print:border-black">
+        <div className="grid grid-cols-2 gap-12 text-center text-[12px]">
+          <div className="space-y-1">
+            <div className="border-b border-black h-12" />
+            <p className="font-semibold text-black pt-1">Auditor Contable Responsable</p>
+            <p className="text-[11px] text-gray-600">Colegiado y Registro Tributario</p>
+          </div>
+          <div className="space-y-1">
+            <div className="border-b border-black h-12" />
+            <p className="font-semibold text-black pt-1">Gerencia Financiera y Administrativa</p>
+            <p className="text-[11px] text-gray-600">Visto Bueno de Conciliación</p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
