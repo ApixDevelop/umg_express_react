@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { NavLink, useNavigate } from "react-router";
 import { useAuthStore } from "@/store/authStore";
 import { authApi } from "@/api/auth";
+import { getBackendInfo } from "@/api/client";
 import {
   Package,
   LayoutDashboard,
@@ -42,6 +43,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const { user, logout } = useAuthStore();
   const navigate = useNavigate();
   const [isServerUp, setIsServerUp] = useState<boolean | null>(null);
+  const backendInfo = getBackendInfo();
 
   useEffect(() => {
     let mounted = true;
@@ -196,10 +198,10 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 <span
                   title={
                     isServerUp === true
-                      ? "Servidor backend conectado"
+                      ? `Servidor conectado (${backendInfo.label})`
                       : isServerUp === false
-                      ? "Sin conexión con servidor"
-                      : "Verificando conexión"
+                      ? `Sin conexión con backend (${backendInfo.label})`
+                      : `Verificando conexión (${backendInfo.label})`
                   }
                   className={cn(
                     "absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full border border-bg",
@@ -215,9 +217,11 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 <p className="text-xs font-medium text-text truncate">
                   {user?.nombre || user?.username || "Usuario"}
                 </p>
-                <p className="text-[11px] text-text-muted truncate">
-                  {role}
-                </p>
+                <div className="flex items-center gap-1.5 text-[11px] text-text-muted truncate">
+                  <span>{role}</span>
+                  <span className="text-text-faint">·</span>
+                  <span className="text-[10px] font-mono text-accent/90">{backendInfo.shortLabel}</span>
+                </div>
               </div>
             </div>
 
