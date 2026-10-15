@@ -27,6 +27,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
             className={cn(
               "w-full h-[34px] bg-surface text-text text-[13px] rounded-control border border-border-input px-3 transition-all duration-150 appearance-none cursor-pointer",
               "focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/50 focus:bg-surface-hover/30",
+              props.disabled && "opacity-60 cursor-not-allowed bg-surface-hover/30",
               error && "border-danger focus:border-danger",
               className
             )}

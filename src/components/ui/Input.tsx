@@ -68,7 +68,8 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
               "transition-all duration-150 ease-out",
               "focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/50 focus:bg-surface-hover/30",
               leftIcon && "pl-8",
-              (rightIcon || isPassword) && "pr-8",
+              (rightIcon || isPassword) && "pr-10",
+              props.disabled && "opacity-60 cursor-not-allowed bg-surface-hover/30",
               error && "border-danger focus:border-danger focus:ring-danger/40",
               className
             )}

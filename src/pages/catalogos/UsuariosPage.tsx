@@ -371,7 +371,7 @@ export function UsuariosPage() {
         }
         maxWidth="md"
       >
-        <form onSubmit={handleSubmit} className="space-y-3.5 text-[13px]">
+        <form onSubmit={handleSubmit} className="space-y-4 text-[13px]">
           <Input
             label="Nombre completo del titular"
             value={nombre}
@@ -391,37 +391,45 @@ export function UsuariosPage() {
               required
             />
 
-            <Input
-              label={editingItem ? "Contraseña (opcional)" : "Contraseña inicial"}
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder={
-                editingItem
-                  ? "En blanco conserva la actual"
-                  : "••••••••"
-              }
-              maxLength={63}
-              required={!editingItem}
-            />
+            <Select
+              label="Rol de acceso asignado"
+              value={rol}
+              onChange={(e) => setRol(e.target.value as UserRole)}
+              required
+              disabled={editingItem?.username.toLowerCase() === "admin"}
+            >
+              <option value="Operador">Operador (Emisión, despacho y clientes)</option>
+              <option value="Auditor">Auditor (Reportes y liquidaciones)</option>
+              <option value="Administrador">Administrador (Control total)</option>
+            </Select>
           </div>
 
-          <Select
-            label="Rol de acceso asignado"
-            value={rol}
-            onChange={(e) => setRol(e.target.value as UserRole)}
-            required
-            disabled={editingItem?.username.toLowerCase() === "admin"}
-          >
-            <option value="Operador">Operador (Emisión de guías, despacho y clientes)</option>
-            <option value="Auditor">Auditor (Reportes, consultas y liquidación)</option>
-            <option value="Administrador">Administrador (Control total de catálogos y usuarios)</option>
-          </Select>
+          <Input
+            label={editingItem ? "Contraseña de acceso" : "Contraseña inicial"}
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder={
+              editingItem
+                ? "Dejar en blanco para conservar la actual"
+                : "•••••••• (mínimo 4 caracteres)"
+            }
+            helperText={
+              editingItem
+                ? "Opcional: Ingrese una nueva clave únicamente si desea restablecerla."
+                : "Se requerirá para el inicio de sesión inicial del usuario."
+            }
+            maxLength={63}
+            required={!editingItem}
+          />
 
           {editingItem?.username.toLowerCase() === "admin" && (
-            <p className="text-[11px] text-text-faint italic px-1">
-              * La cuenta raíz principal 'admin' no puede ser degradada a otro rol por seguridad del sistema.
-            </p>
+            <div className="flex items-start gap-2 p-2.5 rounded-control bg-amber-500/10 border border-amber-500/20 text-amber-500 text-[12px] leading-relaxed">
+              <ShieldAlert className="w-4 h-4 flex-shrink-0 mt-0.5" />
+              <div>
+                <span className="font-semibold">Cuenta raíz protegida:</span> Por directiva de seguridad del sistema, el rol de la cuenta principal <span className="font-mono font-medium">@admin</span> es inmutable.
+              </div>
+            </div>
           )}
 
           <div className="pt-2 flex justify-end gap-2">
