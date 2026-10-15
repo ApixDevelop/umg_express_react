@@ -40,7 +40,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
     return (
       <div className="w-full space-y-1">
         {label && (
-          <label htmlFor={inputId} className="block text-[13px] font-medium text-text">
+          <label htmlFor={inputId} className="block text-[13px] font-medium text-text truncate whitespace-nowrap">
             {label}
             {props.required && <span className="text-accent ml-1">*</span>}
           </label>
@@ -68,7 +68,8 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
               "transition-all duration-150 ease-out",
               "focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/50 focus:bg-surface-hover/30",
               leftIcon && "pl-8",
-              (rightIcon || isPassword) && "pr-8",
+              (rightIcon || isPassword) && "pr-10",
+              props.disabled && "opacity-60 cursor-not-allowed bg-surface-hover/30",
               error && "border-danger focus:border-danger focus:ring-danger/40",
               className
             )}

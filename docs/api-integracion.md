@@ -9,7 +9,17 @@
 
 El frontend se comunica con el servidor **UMG Express C++17 Crow** a través de una API RESTful estructurada en formato JSON:
 
-* **Base URL en Desarrollo:** `/v1` (redirigido vía proxy inverso de Vite a `http://127.0.0.1:18080/v1`).
+* **Configuración Dinámica de Entornos (`.env`):**
+  * **Producción (Render Cloud):**
+    ```env
+    VITE_API_URL=https://umg-express.onrender.com/v1
+    ```
+  * **Desarrollo (Local C++ Crow en puerto 18080):**
+    ```env
+    VITE_API_URL=/v1
+    VITE_PROXY_TARGET=http://127.0.0.1:18080
+    ```
+* **Base URL Resolutiva:** `getApiBaseUrl()` en `src/api/client.ts` detecta automáticamente si se está usando una URL de nube (`onrender.com`) o el proxy local para evitar bloqueos por CORS en el navegador.
 * **Content-Type:** `application/json` en todas las solicitudes con cuerpo.
 * **Esquema de Autorización:**
   ```http

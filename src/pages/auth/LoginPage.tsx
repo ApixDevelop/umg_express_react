@@ -2,11 +2,13 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router";
 import { useAuthStore } from "@/store/authStore";
 import { authApi } from "@/api/auth";
+import { getBackendInfo } from "@/api/client";
 import { Package, Lock, User, Sun, Moon, Monitor, ArrowRight, ShieldCheck, Zap } from "lucide-react";
 import { useThemeStore } from "@/store/themeStore";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 export function LoginPage() {
   const [username, setUsername] = useState("admin");
@@ -16,6 +18,7 @@ export function LoginPage() {
   const { setAuth } = useAuthStore();
   const navigate = useNavigate();
   const { theme, resolvedTheme, toggleTheme } = useThemeStore();
+  const backendInfo = getBackendInfo();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -170,6 +173,16 @@ export function LoginPage() {
                 <div className="text-[12px] text-text font-bold group-hover:text-accent font-mono">operador1</div>
                 <div className="text-[11px] text-text-muted">Operador Logístico</div>
               </button>
+            </div>
+
+            {/* Indicador de backend configurado en .env */}
+            <div className="pt-2 flex items-center justify-between text-[11px] text-text-muted border-t border-border/40">
+              <span className="flex items-center gap-1.5">
+                <span className={cn("w-2 h-2 rounded-full", backendInfo.isProduction ? "bg-ok" : "bg-accent")} />
+                <span>Backend activo:</span>
+                <strong className="text-text font-mono">{backendInfo.label}</strong>
+              </span>
+              <span className="text-[10px] text-text-faint font-mono">.env</span>
             </div>
           </div>
         </div>
