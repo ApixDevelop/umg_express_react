@@ -40,7 +40,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
     return (
       <div className="w-full space-y-1">
         {label && (
-          <label htmlFor={inputId} className="block text-[13px] font-medium text-text">
+          <label htmlFor={inputId} className="block text-[13px] font-medium text-text truncate whitespace-nowrap">
             {label}
             {props.required && <span className="text-accent ml-1">*</span>}
           </label>

@@ -383,7 +383,7 @@ export function UsuariosPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Input
-              label="Nombre de usuario (@username)"
+              label="Nombre de usuario"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               placeholder="Ej: cgomez"
@@ -392,7 +392,7 @@ export function UsuariosPage() {
             />
 
             <Select
-              label="Rol de acceso asignado"
+              label="Rol asignado"
               value={rol}
               onChange={(e) => setRol(e.target.value as UserRole)}
               required
