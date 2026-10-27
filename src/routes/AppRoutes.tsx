@@ -11,6 +11,8 @@ import { DespachoPage } from "@/pages/transacciones/DespachoPage";
 import { RastreoPage } from "@/pages/reportes/RastreoPage";
 import { ManifiestoPage } from "@/pages/reportes/ManifiestoPage";
 import { LiquidacionPage } from "@/pages/reportes/LiquidacionPage";
+import { ArbolGuiasPage } from "@/pages/matematica/ArbolGuiasPage";
+import { RedRutasGrafoPage } from "@/pages/matematica/RedRutasGrafoPage";
 
 import { SucursalesPage } from "@/pages/catalogos/SucursalesPage";
 import { ClientesPage } from "@/pages/catalogos/ClientesPage";
@@ -130,6 +132,22 @@ export function AppRoutes() {
             element={
               <RoleGuard allowedRoles={["Administrador"]}>
                 <UsuariosPage />
+              </RoleGuard>
+            }
+          />
+                  <Route
+            path="arbol-guias"
+            element={
+              <RoleGuard allowedRoles={["Administrador", "Operador", "Auditor"]}>
+                <ArbolGuiasPage />
+              </RoleGuard>
+            }
+          />
+                  <Route
+            path="red-rutas"
+            element={
+              <RoleGuard allowedRoles={["Administrador", "Operador", "Auditor"]}>
+                <RedRutasGrafoPage />
               </RoleGuard>
             }
           />
