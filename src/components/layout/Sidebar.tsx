@@ -6,6 +6,7 @@ import { getBackendInfo } from "@/api/client";
 import {
   Package,
   Network,
+  GitFork,
   LayoutDashboard,
   Search,
   Truck,
@@ -98,6 +99,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         { label: "Manifiesto de carga", to: "/manifiesto", icon: FileText, roles: ["Administrador", "Operador", "Auditor"] },
         { label: "Liquidación financiera", to: "/liquidacion", icon: DollarSign, roles: ["Administrador", "Auditor"] },
         { label: "Árbol BST de Guías", to: "/arbol-guias", icon: Network, roles: ["Administrador", "Operador", "Auditor"] },
+        { label: "Red de Rutas (Grafos)", to: "/red-rutas", icon: GitFork, roles: ["Administrador", "Operador", "Auditor"] },
       ],
     },
     {
