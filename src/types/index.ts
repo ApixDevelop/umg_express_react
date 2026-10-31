@@ -225,3 +225,49 @@ export interface ApiHealthResponse {
   modulo_catalogos?: string;
   modulo_guias?: string;
 }
+
+// =============================================================================
+// MATEMÁTICA DISCRETA: ÁRBOL BINARIO DE BÚSQUEDA (BST)
+// =============================================================================
+
+export interface NodoArbolBST {
+  clave: number;
+  izquierdo: NodoArbolBST | null;
+  derecho: NodoArbolBST | null;
+}
+
+export interface ArbolMetricasResponse {
+  success: boolean;
+  tema: string;
+  totalNodos: number;
+  altura: number;
+  estaVacio: boolean;
+  recorridoInOrder: number[];
+  recorridoPreOrder: number[];
+  recorridoPostOrder: number[];
+}
+
+export interface ArbolInOrderResponse {
+  success: boolean;
+  metodoOrdenamiento: string;
+  total: number;
+  guias: Guia[];
+}
+
+export interface ArbolBusquedaResponse {
+  success: boolean;
+  algoritmo?: string;
+  complejidad?: string;
+  comparacionesRealizadas?: number;
+  totalNodosArbol?: number;
+  alturaArbol?: number;
+  guia?: Guia;
+  error?: string;
+}
+
+export interface ArbolEstructuraResponse {
+  success: boolean;
+  totalNodos: number;
+  altura: number;
+  arbol: NodoArbolBST | null;
+}
